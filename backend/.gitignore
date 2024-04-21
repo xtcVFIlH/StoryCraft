@@ -38,9 +38,6 @@ tests/_support/_generated
 # env file
 .env
 
-# uploads
-web/uploads/*
-
 # Docker
 **/docker/*_cache/
 **/docker/*_cache.tar
