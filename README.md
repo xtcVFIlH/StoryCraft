@@ -35,7 +35,7 @@
    ```bash
    npm run build
    ```
-5. 根据 `env.example` 文件创建 `.env` 文件，并在其中配置后端接口地址。
+5. 根据 `env.example` 文件创建 `.env` 文件，进行配置
 
 ### 后端部署
 
@@ -49,7 +49,7 @@
    ```bash
    docker-compose up -d
    ```
-3. 在自动生成的 `.env` 文件中配置API Key和代理（如果需要的话）
+3. 在自动生成的 `.env` 文件中进行配置（数据库相关的信息会被自动配置）
 
 如果选择不使用Docker进行部署：
 
@@ -57,16 +57,24 @@
    ```bash
    cd backend
    ```
-2. 手动根据 `env.example` 文件创建 `.env` 文件，在其中配置mysql数据库连接信息（数据库名称、用户名和密码）、API Key和代理（如果需要的话）
-3. 运行yii migration：
+2. 安装依赖：
+   ```bash
+   composer install
+   ```
+3. 根据 `env.example` 文件创建 `.env` 文件，进行相关配置
+4. 运行yii migration：
    ```bash
    yii migrate
    ```
-4. 选择你喜欢的Web服务器进行配置
+5. 选择你喜欢的Web服务器进行配置
 
-备注：
+### 备注
+
 - 默认用户token为 `8nD5k1hopW`
-- 后端默认使用Gemini 1.5 Pro模型，如需使用其他模型，请重写 `backend/components/LLM` 并修改 `backend/config/LLM` 中的相关配置。
+- 后端默认使用Gemini 1.5 Pro模型，如需使用其他模型，请重写 `backend/components/LLM` 并修改 `backend/config/LLM` 中的相关配置
+- 如果你的云服务器不能访问你需要的模型，可以在 `backend/.env` 中将FRONTEND_PROXY设置为1
+  + 此时，前端会代替后端向模型发送生成请求
+  + **这会将你的API Key暴露给前端，请仅在供个人使用时使用此功能**
 
 ## 许可证
 

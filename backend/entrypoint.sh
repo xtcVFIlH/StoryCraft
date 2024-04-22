@@ -2,11 +2,12 @@
 
 if [ ! -f ".env" ]; then
     echo "Creating .env file..."
-    echo "MYSQL_DATABASE=yii2db_6g5T5YBscm" > .env
-    echo "MYSQL_USER=yii2db_admin" >> .env
-    echo "MYSQL_PASSWORD=yii2db_admin" >> .env
+    echo 'DB_DSN="mysql:host=db;dbname=yii2db_6g5T5YBscm"' > .env
+    echo "DB_USER=yii2db_admin" >> .env
+    echo "DB_PASSWORD=yii2db_admin" >> .env
     echo "PROXY=" >> .env
     echo "API_KEY=" >> .env
+    echo "FRONTEND_PROXY=0" >> .env
 fi
 
 # 等待 MySQL 服务启动并且可以接受连接
