@@ -100,6 +100,34 @@ class StoryController extends \yii\web\Controller
         return $data;
     }
 
+    public function actionUpdateGeneratedContentFromFrontendProxy()
+    {
+        if (yii::$app->user->isGuest) {
+            throw new Exception('User not logged in');
+        }
+        $postBody = json_decode(Yii::$app->request->getRawBody(), true);
+
+        if (!isset($postBody['data'])) {
+            throw new Exception('data cannot be empty');
+        }
+
+        if (!isset($postBody['tempId'])) 
+        {
+            throw new Exception('tempId cannot be empty');
+        }
+
+        if (!isset($postBody['userPrompt'])) 
+        {
+            throw new Exception('userPrompt cannot be empty');
+        }
+
+        $data = yii::$app->story->getNewStoryFromFrontendProxy(
+            $postBody['data'], yii::$app->user->id, $postBody['tempId'], $postBody['userPrompt']
+        );
+
+        return $data;
+    }
+
     public function actionGetAllStoryContents()
     {
         if (yii::$app->user->isGuest) {

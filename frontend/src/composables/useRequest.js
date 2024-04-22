@@ -9,6 +9,11 @@ export function useRequest() {
 
     const request = (path, json = {}, query = {}, cancelToken = null) => {
         const uri = process.env.VUE_APP_BACKEND_URI;
+
+        if (!uri) {
+            return Promise.reject('未配置VUE_APP_BACKEND_URI');
+        }
+
         if (userToken.value) {
             tokenPromise = Promise.resolve();
         } else if (!tokenPromise) {

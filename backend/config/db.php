@@ -2,8 +2,8 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=db;dbname=' . $_ENV['MYSQL_DATABASE'],
-    'username' => $_ENV['MYSQL_USER'],
-    'password' => $_ENV['MYSQL_PASSWORD'],
+    'dsn' => $_ENV['DB_DSN'],
+    'username' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASSWORD'],
     'charset' => 'utf8',
 ];
