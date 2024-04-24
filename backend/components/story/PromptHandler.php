@@ -83,6 +83,26 @@ prompt;
     }
 
     /**
+     * 将生成的故事内容转换为自然语言形式，用于向模型发送历史内容
+     * @param Array $content
+     * @return String
+     */
+    protected function generatedContentToNaturalLanguage($content)
+    {
+        $text = '';
+        foreach ($content as $contentItem) {
+            if ($contentItem['type'] === 'dialogue') {
+                $text .= $contentItem['character'] . '说：' . $contentItem['content'] . "\n\n";
+            } elseif ($contentItem['type'] === 'action') {
+                $text .= $contentItem['character'] . '：（' . $contentItem['content'] . "）\n\n";
+            } elseif ($contentItem['type'] === 'description') {
+                $text .= '（' . $contentItem['content'] . '）' . "\n\n";
+            }
+        }
+        return $text;
+    }
+
+    /**
      * 获取完整的系统提示词
      * @param \app\models\Story $story 故事对象
      * @return String
@@ -145,7 +165,7 @@ prompt;
             }
             $prompts []= [
                 'role' => $record->isUserChat() ? 'user' : 'model',
-                'text' => $record->contentRecord->content,
+                'text' => $record->isUserChat() ? $record->contentRecord->content : $this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)),
             ];
         }
         $prompts []= [
