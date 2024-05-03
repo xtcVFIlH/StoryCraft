@@ -68,13 +68,13 @@ class UploadController extends \yii\web\Controller
         }
         // 文件限制:
         // .png, .jpg, .jpeg
-        // 300KB
+        // 3000KB
         $allowedExtensions = ['png', 'jpg', 'jpeg'];
         if (!in_array($uploadedFile->extension, $allowedExtensions)) {
             throw new Exception('File extension not allowed, only ' . implode(', ', $allowedExtensions));
         }
-        if ($uploadedFile->size > 300 * 1024) {
-            throw new Exception('File size exceeds limit (300KB)');
+        if ($uploadedFile->size > 3000 * 1024) {
+            throw new Exception('File size exceeds limit (3000KB)');
         }
     
         $newFileName = uniqid() . '.' . $uploadedFile->extension;

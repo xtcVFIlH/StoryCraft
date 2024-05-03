@@ -78,6 +78,14 @@ prompt;
             if (!is_string($contentItem['content'])) {
                 throw new GeneratedContentFormatException('Story content should be a string', 224);
             }
+            if ($contentItem['type'] == 'dialogue' || $contentItem['type'] == 'action') {
+                if (!isset($contentItem['character'])) {
+                    throw new GeneratedContentFormatException('Story content should have character', 224);
+                }
+                if (!is_string($contentItem['character'])) {
+                    throw new GeneratedContentFormatException('Story content character should be a string', 224);
+                }
+            }
         }
         return true;
     }

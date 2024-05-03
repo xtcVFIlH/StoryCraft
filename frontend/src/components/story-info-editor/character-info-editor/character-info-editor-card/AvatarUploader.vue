@@ -65,8 +65,8 @@ const beforeAvatarUpload = (rawFile) => {
         alertError('只能上传 .png, .jpg, .jpeg 格式的图片');
         return false;
     }
-    if (rawFile.size > 300 * 1024) {
-        alertError('图片大小不能超过 300kb');
+    if (rawFile.size > 3000 * 1024) {
+        alertError('图片大小不能超过 3000kb');
         return false;
     }
     return true;
