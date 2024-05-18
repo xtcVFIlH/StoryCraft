@@ -27,6 +27,7 @@ class LLM extends LLM\LLM
             'generationConfig' => [
                 'temperature' => $temperature,
                 'topP' => $topP,
+                'responseMimeType' => 'application/json',
             ],    
         ];
     }
