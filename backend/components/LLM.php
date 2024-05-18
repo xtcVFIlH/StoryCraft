@@ -27,6 +27,7 @@ class LLM extends LLM\LLM
             'generationConfig' => [
                 'temperature' => $temperature,
                 'topP' => $topP,
+                'responseMimeType' => 'application/json',
             ],    
         ];
     }
@@ -46,8 +47,10 @@ class LLM extends LLM\LLM
         if (!$isJson) {
             return $text;
         }
-        // 移除markdown的json代码块前后缀
-        $text = preg_replace('/```json\n(.*?)\n```/s', '$1', $text);
+        // 检查是否有json代码块前后缀
+        if (preg_match('/```json\n(.*?)\n```/s', $text)) {
+            $text = preg_replace('/```json\n(.*?)\n```/s', '$1', $text);
+        }
         $array = json_decode($text, true);
         if (!$array) {
             throw new \errors\GeneratedContentFormatException();
