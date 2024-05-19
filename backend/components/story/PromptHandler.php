@@ -4,7 +4,7 @@ namespace app\components\story;
 
 use yii;
 use \Exception;
-use \errors\GeneratedContentFormatException;
+use app\errors\GeneratedContentFormatException;
 
 class PromptHandler
 {

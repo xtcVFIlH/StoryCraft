@@ -3,7 +3,7 @@
 namespace app\components;
 
 use \Exception;
-use \errors\GeneratedContentFormatException;
+use app\errors\GeneratedContentFormatException;
 
 class LLM extends LLM\LLM 
 {
@@ -53,7 +53,7 @@ class LLM extends LLM\LLM
         }
         $array = json_decode($text, true);
         if (!$array) {
-            throw new \errors\GeneratedContentFormatException();
+            throw new GeneratedContentFormatException();
         }
         return $array;
     }

@@ -44,7 +44,7 @@ abstract class LLM
      * @param String|Array $data 响应数据
      * @param Boolean $isJson 生成的文本是否为JSON格式
      * @return String|Array 若$isJson为true则返回数组，否则返回字符串
-     * @throws \errors\GeneratedContentFormatException
+     * @throws \app\errors\GeneratedContentFormatException
      * @throws \Exception
      */
     abstract protected function getResponseData($data, $isJson);
@@ -60,8 +60,7 @@ abstract class LLM
      * @param Array $prompts 包含历史内容以及新内容的提示词数组: [ ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''] ]
      * @param Boolean $isJson 生成的文本是否为JSON格式
      * @return String|Array 若$isJson为true则返回数组，否则返回字符串
-     * @throws \errors\GeneratedContentFormatException
-     * @throws \Exception
+     * @throws \Throwable
      */
     public function generateChatContent($prompts, $isJson = false, $temperature = 1.0, $topP = 1.0)
     {

@@ -30,7 +30,7 @@ class ResponseHandler extends \yii\web\Response
         // 设置响应格式
         if ($response->data !== null) {
             if ($response->data instanceof \Throwable) {
-                if ($response->data instanceof \errors\GeneratedContentFormatException) {
+                if ($response->data instanceof \app\errors\GeneratedContentFormatException) {
                     $responseData = [
                         'code' => 7750,
                         'message' => '模型生成内容不符合格式要求: ' . $response->data->getMessage(),
