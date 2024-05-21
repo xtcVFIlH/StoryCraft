@@ -37,7 +37,7 @@ abstract class LLM
      * @param Array $prompts 包含历史内容以及新内容的提示词数组: [ ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''] ]
      * @return Array
      */
-    abstract protected function getRequestBody($prompts, $temperature, $topP);
+    abstract protected function getRequestBody($prompts, $systemInstruction, $temperature, $topP, $topK);
 
     /**
      * 从响应数据中提取内容
@@ -62,7 +62,11 @@ abstract class LLM
      * @return String|Array 若$isJson为true则返回数组，否则返回字符串
      * @throws \Throwable
      */
-    public function generateChatContent($prompts, $isJson = false, $temperature = 1.0, $topP = 1.0)
+    public function generateChatContent(
+        $prompts, $systemInstruction = '',
+        $isJson = false, 
+        $temperature = 1.0, $topP = 0.95, $topK = 64
+    )
     {
         try {
             if (!$this->apiKey) {
@@ -73,7 +77,7 @@ abstract class LLM
                 'verify' => Yii::getAlias('@app') . '/resources/certs/cacert.pem',
             ]);
             $response = $client->request('POST', $this->getRequestUrl(), [
-                'json' => $this->getRequestBody($prompts, $temperature, $topP),
+                'json' => $this->getRequestBody($prompts, $systemInstruction, $temperature, $topP, $topK),
             ]);
             $data = json_decode($response->getBody(), true);
             return $this->getResponseData($data, $isJson);
@@ -89,14 +93,18 @@ abstract class LLM
      * @param Boolean $isJson 生成的文本是否为JSON格式
      * @return Array
      */
-    public function getRequestDataFrontendProxy($prompts, $isJson = false, $temperature = 1.0, $topP = 1.0)
+    public function getRequestDataFrontendProxy(
+        $prompts, $systemInstruction = '',
+        $isJson = false, 
+        $temperature = 1.0, $topP = 1.0, $topK = 64
+    )
     {
         if (!$this->apiKey) {
             throw new Exception('API key not set');
         }
         return [
             'url' => $this->getRequestUrl(),
-            'json' => $this->getRequestBody($prompts, $temperature, $topP),
+            'json' => $this->getRequestBody($prompts, $systemInstruction, $temperature, $topP, $topK),
             'query' => [],
             'tempId' => substr(md5(uniqid()), 0, 10),
         ];
