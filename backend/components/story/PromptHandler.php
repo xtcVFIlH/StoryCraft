@@ -37,7 +37,6 @@ $this->requirementsPrompt = <<<prompt
     * type: 'description'
     * content: 描述的内容
 - 输出的数组长度应至少为10
-- 在输出中，只能包含故事内容，不能包含任何其他信息
 
 故事内容要求：
 - 使用详细的人物语言描写和人物动作描写；

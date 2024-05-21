@@ -30,7 +30,13 @@ class LLM extends LLM\LLM
                 'topK' => $topK,
                 'responseMimeType' => 'application/json',
             ],    
-            'systemInstruction' => $systemInstruction,
+            'systemInstruction' => [
+                'parts' => [
+                    [
+                        'text' => $systemInstruction,
+                    ]
+                ]
+            ]
         ];
     }
 
