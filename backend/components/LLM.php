@@ -8,7 +8,7 @@ use app\errors\GeneratedContentFormatException;
 class LLM extends LLM\LLM 
 {
 
-    protected function getRequestBody($prompts, $temperature, $topP)
+    protected function getRequestBody($prompts, $systemInstruction, $temperature, $topP, $topK)
     {
         return [
             'contents' => [
@@ -27,8 +27,16 @@ class LLM extends LLM\LLM
             'generationConfig' => [
                 'temperature' => $temperature,
                 'topP' => $topP,
+                'topK' => $topK,
                 'responseMimeType' => 'application/json',
             ],    
+            'systemInstruction' => [
+                'parts' => [
+                    [
+                        'text' => $systemInstruction,
+                    ]
+                ]
+            ]
         ];
     }
 

@@ -145,11 +145,13 @@ class Story
         }
 
         $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt);
+        $systemInstruction = $prompts['system'];
+        $prompts = $prompts['user'];
 
         if (yii::$app->LLM->usingFrontendProxy) {
             // 使用前端代理，直接返回需要代理的请求信息
             $frontendProxy = yii::$app->LLM->getRequestDataFrontendProxy(
-                $prompts, true
+                $prompts, $systemInstruction, true
             );
             $tempRecord = new \app\models\FrontendProxyTemp();
             $tempRecord->chatSessionId = $chatSessionId;
@@ -164,7 +166,7 @@ class Story
         }
 
         $generateContents = yii::$app->LLM->generateChatContent(
-            $prompts, true
+            $prompts, $systemInstruction, true
         );
         $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $this->promptHandler->validateGeneratedContent($generateContentJson);

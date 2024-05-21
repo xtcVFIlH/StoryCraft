@@ -37,15 +37,11 @@ $this->requirementsPrompt = <<<prompt
     * type: 'description'
     * content: 描述的内容
 - 输出的数组长度应至少为10
-- 在输出中，只能包含故事内容，不能包含任何其他信息
 
 故事内容要求：
-- 使用详细的人物语言描写；
-- 使用简洁的人物动作描写；
-- 尽量不使用环境、场景描写；
-- 禁止使用旁白描述剧情进展，一切剧情进展都应通过人物行为、语言来表达；
+- 使用详细的人物语言描写和人物动作描写；
 - 禁止主动询问用户的下一步剧情；
-- 禁止直接描述人物的内心活动、情感状态，一切情感状态都应通过人物行为、语言来表达；
+- 任何剧情进展和人物情感状态都应通过人物行为、语言来表达；
 
 ---        
 prompt;
@@ -121,6 +117,7 @@ prompt;
     )
     {
         $prompt = $this->systemPrompt;
+        $prompt .= "\n\n" . $this->requirementsPrompt;
         $storyInfoPrompt = $story->getStoryInfoPrompt();
         return $prompt . "\n\n" . $storyInfoPrompt;
     }
@@ -132,7 +129,6 @@ prompt;
     protected function getUserPrompt($userPrompt)
     {
         $prompt = "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
-        $prompt .= "\n\n" . $this->requirementsPrompt;
         return $prompt;
     }
 
@@ -141,7 +137,7 @@ prompt;
      * @param \app\models\Story $story 故事对象
      * @param string $chatSessionId 会话ID
      * @param string $userInputPrompt 新故事文本
-     * @return Array[] 提示词数组: [ ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''] ] 
+     * @return Array[] 用户提示词数组和系统提示词: ['user' => ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''], 'system' => '', ] 
      */
     public function getPrompts(
         $story,
@@ -149,16 +145,6 @@ prompt;
         $userInputPrompt
     )
     {
-        $prompts = [
-            [
-                'role' => 'user',
-                'text' => $this->getSystemPrompt($story),
-            ],
-            [
-                'role' => 'model',
-                'text' => '我理解了，我将遵循以上所有要求进行创作。请您给出第一个剧情信息。',
-            ],
-        ];
         // 获取历史会话
         $chatRecords = \app\models\chat\ChatRecord::find()
             ->where([
@@ -174,14 +160,17 @@ prompt;
             }
             $prompts []= [
                 'role' => $record->isUserChat() ? 'user' : 'model',
-                'text' => $record->isUserChat() ? $record->contentRecord->content : $this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)),
+                'text' => $record->contentRecord->content,
             ];
         }
         $prompts []= [
             'role' => 'user',
             'text' => $this->getUserPrompt($userInputPrompt),
         ];
-        return $prompts;
+        return [
+            'user' => $prompts,
+            'system' => $this->getSystemPrompt($story),
+        ];
     }
 
 }
