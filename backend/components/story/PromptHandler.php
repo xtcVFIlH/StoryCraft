@@ -26,15 +26,29 @@ $this->requirementsPrompt = <<<prompt
 
 故事内容格式要求:
 - 使用JSON格式输出故事内容,使用一个数组包含所有内容
-- 对于角色的对话和行为,格式如下:
-    * type: 'dialogue' 或 'action'
-    * character: '角色的完整名字'
-    * content:
-      + type为'dialogue'时,content为角色说的话
-      + type为'action'时,content为对角色行为的客观记录
+- 角色对话的格式如下：
+```json
+{
+    "type": "dialogue",
+    "character": "角色的完整名字",
+    "content": "角色说的话"
+}
+```
+- 角色行为的格式如下：
+```json
+{
+    "type": "dialogue",
+    "character": "角色的完整名字",
+    "content": "角色行为的描述"
+}
+```
 - 对于其他所有内容,格式如下:
-    * type: 'description'
-    * content: 描述的内容
+```json
+{
+	"type": "description",
+	"content": "描述的内容"
+}
+```
 - 输出的数组长度至少为10
 
 故事内容要求：
