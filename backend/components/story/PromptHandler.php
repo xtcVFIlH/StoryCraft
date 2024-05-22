@@ -37,7 +37,7 @@ $this->requirementsPrompt = <<<prompt
 - 角色行为的格式如下：
 ```json
 {
-    "type": "dialogue",
+    "type": "action",
     "character": "角色的完整名字",
     "content": "角色行为的描述"
 }
