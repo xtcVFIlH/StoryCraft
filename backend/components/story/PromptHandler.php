@@ -26,7 +26,6 @@ $this->requirementsPrompt = <<<prompt
 
 故事内容格式要求:
 - 使用JSON格式输出故事内容,使用一个数组包含所有内容
-- 输出的数组长度至少为10
 - 角色对话的格式如下：
 ```json
 {
@@ -143,6 +142,7 @@ prompt;
     protected function getUserPrompt($userPrompt)
     {
         $prompt = "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
+        $prompt .= "请注意遵守JSON格式要求，并保证输出的JSON数组长度至少为10。";
         return $prompt;
     }
 
