@@ -46,7 +46,6 @@ const emit = defineEmits([
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 10px;
 }
 .story-display-container {
     min-height: 0;

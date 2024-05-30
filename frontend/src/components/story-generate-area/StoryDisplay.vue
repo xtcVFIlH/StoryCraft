@@ -2,6 +2,7 @@
     <div class="story-display">
         <div v-for="(contents) in props.storyContents"
             :key="contents.id"
+            class="bubbles"
         >
             <story-display-bubble
                 v-for="(content, index) in contents.content"
@@ -32,4 +33,11 @@ const props = defineProps([
 </script>
 
 <style scoped>
+.story-display>*:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.bubbles>*:not(:last-child) {
+  margin-bottom: 10px;
+}
 </style>

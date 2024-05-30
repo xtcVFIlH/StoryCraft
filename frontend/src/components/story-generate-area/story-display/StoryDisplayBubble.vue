@@ -128,8 +128,8 @@ p {
 }
 .story-bubble {
     box-sizing: border-box;
-    padding: 10px;
     width: 100%;
+    padding: 0 5px;
 }
 .story-bubble-with-character {
     display: flex;
@@ -176,7 +176,7 @@ p.content {
 }
 .right-bar {
     box-sizing: border-box;
-    padding: 10px;
+    padding: 5px 0 5px 5px;
     display: flex;
     flex-direction: column;
 }
