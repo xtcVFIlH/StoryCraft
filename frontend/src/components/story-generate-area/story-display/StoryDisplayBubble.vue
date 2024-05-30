@@ -157,7 +157,7 @@ p.content {
     box-sizing: border-box;
     padding: 20px;
     font-size: 14px;
-    background-color: #c5ecd9;
+    background-color: var(--el-color-success-light-5);
     color: #000;
     border-radius: 5px;
     word-break: break-all;
@@ -172,7 +172,7 @@ p.content {
     display: flex;
 }
 .story-bubble-description.user>p.content {
-    background-color:#ecc5c5;
+    background-color: var(--el-color-info-light-5);
 }
 .right-bar {
     box-sizing: border-box;
@@ -185,6 +185,10 @@ p.content {
 }
 .icon-container {
     cursor: pointer;
+    transition: var(--el-transition-duration-fast);
+}
+.icon-container:hover {
+    color: var(--el-color-primary-dark-2);
 }
 .content-container {
     display: flex;
