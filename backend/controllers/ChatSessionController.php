@@ -18,9 +18,6 @@ class ChatSessionController extends base\Controller
 
         $postBody = json_decode(Yii::$app->request->getRawBody(), true);
 
-        if (!isset($postBody['chatSessionId'])) {
-            throw new Exception('chatSessionId cannot be empty');
-        }
         if (!isset($postBody['storyId'])) {
             throw new Exception('storyId cannot be empty');
         }
@@ -28,7 +25,7 @@ class ChatSessionController extends base\Controller
             throw new Exception('title cannot be empty');
         }
 
-        $chatSessionId = $postBody['chatSessionId'];
+        $chatSessionId = isset($postBody['chatSessionId']) ? $postBody['chatSessionId'] : null;
         $storyId = $postBody['storyId'];
         $title = trim($postBody['title']);
         $customInstructions = isset($postBody['customInstructions']) ? trim($postBody['customInstructions']) : '';
@@ -40,9 +37,17 @@ class ChatSessionController extends base\Controller
             throw new Exception('customInstructions is tooooo long');
         }
 
-        $record = \app\models\chat\ChatSession::find()
-            ->where(['id' => $chatSessionId, 'storyId' => $storyId, 'userId' => yii::$app->user->id])
-            ->one();
+        if ($chatSessionId !== null) {
+            $record = \app\models\chat\ChatSession::find()
+                ->where(['id' => $chatSessionId, 'storyId' => $storyId, 'userId' => yii::$app->user->id])
+                ->one();
+        }
+        else {
+            $record = new \app\models\chat\ChatSession();
+            $record->storyId = $storyId;
+            $record->userId = yii::$app->user->id;
+        }
+
         if (!$record) {
             throw new Exception('chatSession not found');
         }
