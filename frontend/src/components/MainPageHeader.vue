@@ -1,6 +1,6 @@
 <template>
     <div class="header">
-        <div class="icon-container">
+        <div class="icon-container hoverable">
             <el-icon 
                 :size="25"
                 @click="emit('enterChatSessionBar')"
@@ -8,8 +8,16 @@
                 <ChatLineSquare />
             </el-icon>
         </div>
-        <p>{{ props.chatSessionTitle }}</p>
-        <div class="icon-container">
+        <div class="title-container hoverable"
+            @click="emit('enterChatSessionInfoEditor')"
+            v-show="props.chatSessionTitle"
+        >
+            <p>{{ props.chatSessionTitle }}</p>
+            <el-icon>
+                <Edit />
+            </el-icon>
+        </div>
+        <div class="icon-container hoverable">
             <el-icon
                 :size="25"
                 @click="emit('enterStoryInfoEditor')"
@@ -22,8 +30,6 @@
 
 <script setup>
 
-import { ChatLineSquare, SwitchFilled } from '@element-plus/icons-vue'
-
 const props = defineProps([
     'chatSessionTitle',
 ])
@@ -31,6 +37,7 @@ const props = defineProps([
 const emit = defineEmits([
     'enterChatSessionBar',
     'enterStoryInfoEditor',
+    'enterChatSessionInfoEditor',
 ])
 
 </script>
@@ -46,14 +53,25 @@ const emit = defineEmits([
     background-color: var(--el-menu-bg-color);
     border-bottom: 1px solid var(--el-border-color);
 }
-.header>p {
+
+.title-container {
+    max-width: 70%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+.title-container>p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     margin: 0;
 }
-.icon-container {
+
+.hoverable {
+    cursor: pointer;
     transition: var(--el-transition-duration-fast);
 }
-.icon-container:hover {
-    cursor: pointer;
+.hoverable:hover {
     color: var(--el-color-primary-dark-2);
 }
 </style>

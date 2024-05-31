@@ -89,10 +89,11 @@ const closeBar = () => {
 const props = defineProps([
     'storyId',
     'chatSessionId',
+    'chatSessionTitle',
     'modelValue', // 绑定侧边栏的显示状态
 ]);
 const emit = defineEmits([
-    'updateChatSession',
+    'updateChatSessionInfo',
     'update:modelValue',
     'sessionsLoadingStart',
     'sessionsLoadingEnd',
@@ -112,15 +113,23 @@ watch(() => chatSessionId.value, (newValue) => {
     if (props.storyId) {
         recentlySelectedChatSessionIdTable.value[props.storyId] = newValue;
     }
-    emit('updateChatSession', {
+    emit('updateChatSessionInfo', {
         id: newValue,
-        title: chatSessionTitle,
+        title: chatSessionTitle.value,
     });
 })
 watch(() => props.chatSessionId, (newValue) => {
-    chatSessionId.value = newValue;
-    if (newValue) {
-        refreshChatSessions();
+    (newValue ? refreshChatSessions() : Promise.resolve())
+    .then(() => {
+        chatSessionId.value = newValue;
+    });
+})
+watch(() => props.chatSessionTitle, (newValue) => {
+    for (let i = 0; i < chatSessions.value.length; i++) {
+        if (chatSessions.value[i].id === chatSessionId.value) {
+            chatSessions.value[i].title = newValue;
+            break;
+        }
     }
 })
 
@@ -131,7 +140,7 @@ const isLoading = computed(() => {
 const refreshChatSessions = () => {
     if (!props.storyId) {
         chatSessions.value = [];
-        return ;
+        return Promise.resolve();
     }
 
     if (cancelTokenSource) {
@@ -141,7 +150,7 @@ const refreshChatSessions = () => {
 
     emit('sessionsLoadingStart');
 
-    request('/story/get-all-chat-sessions', {
+    return request('/chat-session/get-all', {
         storyId: props.storyId,
     }, {}, cancelTokenSource.token)
     .then(data => {
@@ -158,13 +167,15 @@ const refreshChatSessions = () => {
     });
 }
 watch(() => props.storyId, () => {
-    if (props.storyId) {
-        chatSessionId.value = recentlySelectedChatSessionIdTable.value[props.storyId] || null;
-    }
-    else {
-        chatSessionId.value = null;
-    }
-    refreshChatSessions();
+    refreshChatSessions()
+    .then(() => {
+        if (props.storyId) {
+            chatSessionId.value = recentlySelectedChatSessionIdTable.value[props.storyId] || null;
+        }
+        else {
+            chatSessionId.value = null;
+        }
+    });
 })
 const handleRefreshBtnClick = () => {
     chatSessionId.value = null;
@@ -182,7 +193,7 @@ const handleClickChatSessionDeleteBtn = deleteChatSessionId => {
         type: 'warning',
     })
     .then(() => {
-        return request('/story/delete-chat-session', {
+        return request('/chat-session/delete', {
             chatSessionId: deleteChatSessionId,
             storyId: props.storyId,
         })

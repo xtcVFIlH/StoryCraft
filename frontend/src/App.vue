@@ -9,6 +9,7 @@
                     :chat-session-title="chatSessionInfo.title"
                     @enter-chat-session-bar="isChatSessionBarVisible = true"
                     @enter-story-info-editor="isStoryInfoEditorVisible = true"
+                    @enter-chat-session-info-editor="isChatSessionInfoEditorVisible = true"
                 >
                 </main-page-header>
             </div>
@@ -37,11 +38,19 @@
             v-model="isChatSessionBarVisible"
             :story-id="storyId"
             :chat-session-id="chatSessionInfo.id"
-            @update-chat-session="chatSessionInfo = $event"
+            :chat-session-title="chatSessionInfo.title"
+            @update-chat-session-info="updateChatSessionInfo"
             @sessions-loading-start="loadingCount++"
             @sessions-loading-end="loadingCount--"
         >
         </chat-session-vertical-bar>
+        <chat-session-info-editor-dialog
+            v-model="isChatSessionInfoEditorVisible"
+            :story-id="storyId"
+            :chat-session-id="chatSessionInfo.id"
+            @update-chat-session-info="updateChatSessionInfo"
+        >
+        </chat-session-info-editor-dialog>
     </div>
 </template>
 
@@ -50,6 +59,7 @@ import MainPageHeader from './components/MainPageHeader.vue'
 import StoryGenerateArea from './components/StoryGenerateArea.vue'
 import StoryInfoEditorDialog from './components/StoryInfoEditorDialog.vue'
 import ChatSessionVerticalBar from './components/ChatSessionVerticalBar.vue'
+import ChatSessionInfoEditorDialog from './components/ChatSessionInfoEditorDialog.vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 
 import axios from 'axios'
@@ -65,6 +75,8 @@ const alertError = error => {
         type: 'error',
     });
 }
+
+const isChatSessionInfoEditorVisible = ref(false);
 
 const loadingCount = ref(1);
 const isLoadingVisible = ref(true);
@@ -88,20 +100,10 @@ watch(isStoryInfoEditorInitialized, (newValue) => {
         loadingCount.value = 0;
     }
 })
-/**
- * StoryGenerateArea组件是否可见
- * @type {ref<boolean>}
- */
+
 const isStoryInfoEditorVisible = ref(false);
-/**
- * 当前使用的故事Id，由StoryInfoEditorDialog组件管理
- * @type {ref<number>} 
- */
+
 const storyId = ref(null);
-/**
- * 当前使用的故事信息，由StoryInfoEditorDialog组件管理
- * @type {ref<object>}
- */
 const storyInfo = ref({
     title: '',
     backgroundInfo: '',
@@ -111,33 +113,25 @@ const handleUpdateStoryInfo = info => {
     storyInfo.value = JSON.parse(JSON.stringify(info));
 }
 
-/**
- * ChatSessionVerticalBar组件是否可见
- * @type {ref<boolean>}
- */
 const isChatSessionBarVisible = ref(false);
-/**
- * 当前使用的会话信息，由ChatSessionVerticalBar组件管理
- * @type {ref<{object}>}
- */
+
 const chatSessionInfo = ref({
     id: null,
     title: '',
 });
-
-/**
- * 当前会话的故事内容
- * @type {ref<Array>}
- */
- const storyContents = ref([]);
-
-watch(() => chatSessionInfo.value.id, (newValue) => {
-    if (!newValue) {
-        storyContents.value = [];
-        return;
+const updateChatSessionInfo = (data) => {
+    if (Object.prototype.hasOwnProperty.call(data, 'id')) {
+        chatSessionInfo.value.id = data.id;
     }
+    if (Object.prototype.hasOwnProperty.call(data, 'title')) {
+        chatSessionInfo.value.title = data.title;
+    }
+}
+watch(() => chatSessionInfo.value.id, () => {
     refreshStory();
 })
+
+const storyContents = ref([]);
 
 const handleDeleteUserStoryContent = recordId => {
     ElMessageBox.confirm('确定删除这条输入、以及对应的模型输出吗？', '删除', {
@@ -168,6 +162,10 @@ const handleDeleteUserStoryContent = recordId => {
 }
 
 const refreshStory = () => {
+    if (!storyId.value || !chatSessionInfo.value.id) {
+        storyContents.value = [];
+        return;
+    }
     loadingCount.value++;
     request('/story/get-all-story-contents', {
         storyId: storyId.value,
