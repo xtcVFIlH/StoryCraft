@@ -144,7 +144,7 @@ class Story
             throw new Exception('用户提示词不符合格式要求');
         }
 
-        $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt);
+        $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
 
