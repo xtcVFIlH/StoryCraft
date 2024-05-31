@@ -123,16 +123,21 @@ prompt;
     /**
      * 获取完整的系统提示词
      * @param \app\models\Story $story 故事对象
+     * @param String|Null $customInstructions 额外提示词
      * @return String
      */
     protected function getSystemPrompt(
-        $story
+        $story, $customInstructions = null
     )
     {
         $prompt = $this->systemPrompt;
         $prompt .= "\n\n" . $this->requirementsPrompt;
         $storyInfoPrompt = $story->getStoryInfoPrompt();
-        return $prompt . "\n\n" . $storyInfoPrompt;
+        $prompt .= "\n\n" . $storyInfoPrompt;
+        if ($customInstructions) {
+            $prompt .= "\n\n额外的背景信息或要求:\n---\n\n" . $customInstructions . "\n\n---";
+        }
+        return $prompt;
     }
 
     /**
@@ -142,21 +147,23 @@ prompt;
     protected function getUserPrompt($userPrompt)
     {
         $prompt = "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
-        $prompt .= "请注意遵守JSON格式要求，并保证输出的JSON数组长度至少为10。";
+        $prompt .= "\n请注意遵守JSON格式要求（若type为action和dialogue，必须包含character字段），并保证输出的JSON数组长度至少为10。";
         return $prompt;
     }
 
     /**
      * 获取完整的提交给模型的提示词
      * @param \app\models\Story $story 故事对象
-     * @param string $chatSessionId 会话ID
-     * @param string $userInputPrompt 新故事文本
+     * @param String $chatSessionId 会话ID
+     * @param String $userInputPrompt 新故事文本
+     * @param String|Null $customInstructions 额外提示词
      * @return Array[] 用户提示词数组和系统提示词: ['user' => ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''], 'system' => '', ] 
      */
     public function getPrompts(
         $story,
         $chatSessionId,
-        $userInputPrompt
+        $userInputPrompt,
+        $customInstructions = null
     )
     {
         // 获取历史会话
@@ -183,7 +190,7 @@ prompt;
         ];
         return [
             'user' => $prompts,
-            'system' => $this->getSystemPrompt($story),
+            'system' => $this->getSystemPrompt($story, $customInstructions),
         ];
     }
 
