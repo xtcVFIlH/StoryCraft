@@ -42,6 +42,7 @@
             @update-chat-session-info="updateChatSessionInfo"
             @sessions-loading-start="loadingCount++"
             @sessions-loading-end="loadingCount--"
+            @create-new-chat-session="isChatSessionInfoEditorVisible = true"
         >
         </chat-session-vertical-bar>
         <chat-session-info-editor-dialog

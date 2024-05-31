@@ -97,6 +97,7 @@ const emit = defineEmits([
     'update:modelValue',
     'sessionsLoadingStart',
     'sessionsLoadingEnd',
+    'createNewChatSession',
 ]);
 
 const chatSessions = ref([]);
@@ -183,6 +184,7 @@ const handleRefreshBtnClick = () => {
 }
 const handleClickChatsessionNewBtn = () => {
     chatSessionId.value = null;
+    emit('createNewChatSession');
     closeBar();
 }
 

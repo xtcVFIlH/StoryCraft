@@ -32,7 +32,7 @@
                         @click="submit"
                         :disabled="submitBtnDisabled"
                     >
-                        更新
+                        {{ isCreateOperation ? '新建会话' : '更新会话' }}
                     </el-button>
                 </el-form-item>
             </el-form>
@@ -92,7 +92,10 @@ const customInstructions = ref('');
 const isLoading = ref(false);
 
 const submitBtnDisabled = computed(() => {
-    return !props.storyId || !props.chatSessionId || !title.value;
+    return !props.storyId || !title.value;
+})
+const isCreateOperation = computed(() => {
+    return props.chatSessionId === null || props.chatSessionId === undefined;
 })
 const submit = () => {
     isLoading.value = true;
@@ -107,7 +110,7 @@ const submit = () => {
     )
     .then(data => {
         emits('updateChatSessionInfo', {
-            chatSessionId: data.chatSessionId,
+            id: data.chatSessionId,
             title: data.title,
         });
         alertSuccess('更新成功');
