@@ -50,35 +50,6 @@ class StoryController extends \yii\web\Controller
         ];
     }
 
-    public function actionGetAllChatSessions()
-    {
-        if (yii::$app->user->isGuest) {
-            throw new Exception('User not logged in');
-        }
-
-        $postBody = json_decode(Yii::$app->request->getRawBody(), true);
-
-        if (!isset($postBody['storyId'])) {
-            throw new Exception('storyId cannot be empty');
-        }
-        $storyId = $postBody['storyId'];
-        $userId = yii::$app->user->id;
-
-        $chatSessions = \app\models\chat\ChatSession::find()
-            ->where(['storyId' => $storyId, 'userId' => $userId])
-            ->orderBy('id DESC')
-            ->all();
-        
-        return [
-            'chatSessions' => array_map(function($record) {
-                return [
-                    'id' => $record->id,
-                    'title' => $record->title,
-                ];
-            }, $chatSessions),
-        ];
-    }
-
     public function actionGenerate()
     {
         if (yii::$app->user->isGuest) {
@@ -244,37 +215,6 @@ class StoryController extends \yii\web\Controller
         return [
             'newContents' => yii::$app->story->deleteModelContent($chatRecordId, $userId, $itemInx),
         ];
-    }
-
-    public function actionDeleteChatSession()
-    {
-        if (yii::$app->user->isGuest) {
-            throw new Exception('User not logged in');
-        }
-        $userId = yii::$app->user->id;
-
-        $postBody = json_decode(Yii::$app->request->getRawBody(), true);
-
-        // chatSessionId
-        if (!isset($postBody['chatSessionId'])) {
-            throw new Exception('chatSessionId cannot be empty');
-        }
-        $chatSessionId = $postBody['chatSessionId'];
-        if (!preg_match('/^\d{1,8}$/', $chatSessionId)) {
-            throw new Exception('chatSessionId format error');
-        }
-        // storyId
-        if (!isset($postBody['storyId'])) {
-            throw new Exception('storyId cannot be empty');
-        }
-        $storyId = $postBody['storyId'];
-        if (!preg_match('/^\d{1,8}$/', $storyId)) {
-            throw new Exception('storyId format error');
-        }
-
-        yii::$app->story->deleteChatSession($storyId, $chatSessionId, $userId);
-
-        return [];
     }
 
 }
