@@ -428,6 +428,7 @@ class Story
 
     public function getStoriesWithIdAndTitle($userId) {
         $stories = \app\models\Story::find()
+            ->select(['id', 'title'])
             ->where(['userId' => $userId])
             ->orderBy('id DESC')
             ->all();
