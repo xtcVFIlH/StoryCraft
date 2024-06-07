@@ -22,10 +22,9 @@ class Character extends ActiveRecord
         return [
             [['storyId', 'name', 'feature'], 'required', 'message' => '{attribute}不能为空'],
             ['storyId', 'integer', 'message' => '{attribute}必须是整数'],
-            ['name', 'string', 'max' => 20, 'tooLong' => '{attribute}最多可以包含20个字符'],
-            ['feature', 'string', 'max' => 400, 'tooLong' => '{attribute}最多可以包含400个字符'],
-            ['avatar', 'string', 'max' => 255, 'tooLong' => '{attribute}最多可以包含255个字符'],
-            [['name', 'feature'], 'match', 'pattern' => '/(```|---)/', 'not' => true, 'message' => '{attribute}不能包含```或---'],
+            ['name', 'string', 'max' => 255, 'tooLong' => '{attribute}太长了'],
+            ['feature', 'string', 'max' => 100000, 'tooLong' => '{attribute}太长了'],
+            ['avatar', 'string', 'max' => 255, 'tooLong' => '{attribute}太长了'],
         ];
     }
 
