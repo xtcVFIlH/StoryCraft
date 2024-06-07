@@ -236,8 +236,8 @@ const handleEditModelStoryContent = (args) => {
         cancelButtonText: '取消',
         confirmButtonText: '更新情节',
         inputType: 'textarea',
-        inputPattern: /^[^\n]{1,200}$/,
-        inputErrorMessage: '不支持换行符、长度不超过100个字符',
+        inputPattern: /^[^\n]$/,
+        inputErrorMessage: '不支持换行符',
     })
     .then(({ value }) => {
         loadingCount.value++;

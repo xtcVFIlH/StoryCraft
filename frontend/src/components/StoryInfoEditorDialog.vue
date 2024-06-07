@@ -47,7 +47,6 @@
                 resize="none"
                 v-model="storyInfoForEdit.backgroundInfo"
                 show-word-limit
-                maxlength="900"
                 :rows="8"
                 placeholder="故事背景信息"
             ></el-input>
