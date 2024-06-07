@@ -383,10 +383,8 @@ class Story
     public function editModelContent($chatRecordId, $userId, $itemInx, $newItemContent)
     {
         $newItemContent = trim($newItemContent);
-        // 禁止包含换行符
-        if (preg_match('/\n/', $newItemContent)) {
-            throw new Exception('修改的文本不能包含换行符');
-        }
+        $newItemContent = mb_ereg_replace("\r\n|\n|\r", '', $newItemContent);
+        
         $chatRecord = \app\models\chat\ChatRecord::find()
             ->where(['id' => $chatRecordId, 'userId' => $userId])
             ->with('contentRecord')
