@@ -236,7 +236,7 @@ const handleEditModelStoryContent = (args) => {
         cancelButtonText: '取消',
         confirmButtonText: '更新情节',
         inputType: 'textarea',
-        inputPattern: /^[^\n]$/,
+        inputPattern: /^[^\n]+$/,
         inputErrorMessage: '不支持换行符',
     })
     .then(({ value }) => {
