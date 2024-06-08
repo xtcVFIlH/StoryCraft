@@ -17,7 +17,6 @@
             placeholder="角色特征"
             type="textarea"
             show-word-limit
-            maxlength="400"
             resize="none"
             class="autosize-textarea"
             style="flex-grow: 1; flex-shrink: 1;"

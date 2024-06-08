@@ -20,9 +20,8 @@ class Story extends ActiveRecord
     {
         return [
             [['title', 'backgroundInfo'], 'required', 'message' => '{attribute}不能为空'],
-            ['title', 'string', 'max' => 20, 'tooLong' => '标题最多可以包含20个字符'],
-            ['backgroundInfo', 'string', 'max' => 900, 'tooLong' => '背景信息最多可以包含900个字符'],
-            [['backgroundInfo'], 'match', 'pattern' => '/(```|---)/', 'not' => true, 'message' => '{attribute}不能包含```或---'],
+            ['title', 'string', 'max' => 255, 'tooLong' => '{attribute}太长了'],
+            ['backgroundInfo', 'string', 'max' => 100000, 'tooLong' => '{attribute}太长了'],
         ];
     }
 

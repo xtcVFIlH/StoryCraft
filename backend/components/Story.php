@@ -133,15 +133,8 @@ class Story
         $chatSessionId = $chatSession->id;
 
         $userPrompt = trim($userPrompt);
-        if (mb_strlen($userPrompt) > 200) {
-            throw new Exception('用户输入的提示词不能超过200个字符');
-        }
         if (!$userPrompt) {
             throw new Exception('用户输入的提示词不能为空');
-        }
-        // 查看是否包含---、```、换行符
-        if (preg_match('/```|---|\n/', $userPrompt)) {
-            throw new Exception('用户提示词不符合格式要求');
         }
 
         $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
@@ -217,15 +210,8 @@ class Story
         }
 
         $userPrompt = trim($userPrompt);
-        if (mb_strlen($userPrompt) > 200) {
-            throw new Exception('用户输入的提示词不能超过200个字符');
-        }
         if (!$userPrompt) {
             throw new Exception('用户输入的提示词不能为空');
-        }
-        // 查看是否包含---、```、换行符
-        if (preg_match('/```|---|\n/', $userPrompt)) {
-            throw new Exception('用户提示词不符合格式要求');
         }
 
         $tempRecord = \app\models\FrontendProxyTemp::find()->where([
@@ -397,13 +383,8 @@ class Story
     public function editModelContent($chatRecordId, $userId, $itemInx, $newItemContent)
     {
         $newItemContent = trim($newItemContent);
-        // 禁止包含换行符
-        if (preg_match('/\n/', $newItemContent)) {
-            throw new Exception('修改的文本不能包含换行符');
-        }
-        if (mb_strlen($newItemContent) > 200) {
-            throw new Exception('修改的文本不能超过200个字符');
-        }
+        $newItemContent = mb_ereg_replace("\r\n|\n|\r", '', $newItemContent);
+        
         $chatRecord = \app\models\chat\ChatRecord::find()
             ->where(['id' => $chatRecordId, 'userId' => $userId])
             ->with('contentRecord')
@@ -428,6 +409,7 @@ class Story
 
     public function getStoriesWithIdAndTitle($userId) {
         $stories = \app\models\Story::find()
+            ->select(['id', 'title'])
             ->where(['userId' => $userId])
             ->orderBy('id DESC')
             ->all();
