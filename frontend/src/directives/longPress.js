@@ -8,6 +8,8 @@ const longPress = {
         }
         let pressTimer = null;
 
+        el.style.userSelect = 'none';
+
         const start = (e) => {
             if (e.type === 'click' && e.button !== 0) {
                 return;
@@ -36,6 +38,8 @@ const longPress = {
     unmounted(el) {
         const start = el[startKey];
         const cancel = el[cancelKey];
+
+        el.style.userSelect = '';
 
         el.removeEventListener("touchstart", start);
         el.removeEventListener("touchend", cancel);
