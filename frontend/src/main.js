@@ -12,7 +12,7 @@ for (const [componentName, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(componentName, component);
 }
 
-app.directive('longpress', longPress);
+app.directive('longPress', longPress);
 
 app.use(ElementPlus);
 app.mount('#app');
