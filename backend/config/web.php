@@ -16,12 +16,9 @@ $config = [
         '@uploads' => '@webroot/uploads',
     ],
     'components' => [
-        'LLM' => array_merge(
-            [
-                'class' => 'app\components\LLM',
-            ],
-            require __DIR__ . '/LLM.php'
-        ),
+        'gemini' => [
+            'class' => 'app\components\Gemini',
+        ],
         '__storyPromptHandler' => [
             'class' => 'app\components\story\PromptHandler',
         ],

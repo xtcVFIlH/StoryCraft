@@ -181,7 +181,7 @@ prompt;
             }
             $prompts []= [
                 'role' => $record->isUserChat() ? 'user' : 'model',
-                'text' => $record->contentRecord->content,
+                'text' => $record->isUserChat() ? $record->contentRecord->content : $this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)),
             ];
         }
         $prompts []= [
