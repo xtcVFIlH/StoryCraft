@@ -141,7 +141,7 @@ class Story
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
 
-        if (yii::$app->LLM->usingFrontendProxy) {
+        if (yii::$app->params['usingFrontendProxy']) {
             // 使用前端代理，直接返回需要代理的请求信息
             $frontendProxy = yii::$app->LLM->getRequestDataFrontendProxy(
                 $prompts, $systemInstruction, true
