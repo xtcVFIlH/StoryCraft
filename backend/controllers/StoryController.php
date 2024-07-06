@@ -92,8 +92,20 @@ class StoryController extends \yii\web\Controller
             throw new Exception('userPrompt cannot be empty');
         }
 
-        $data = yii::$app->story->getNewStoryFromFrontendProxy(
-            $postBody['data'], yii::$app->user->id, $postBody['tempId'], $postBody['userPrompt']
+        $record = \app\models\FrontendProxyTemp::findOne(['tempId' => $postBody['tempId']]);
+        if (!$record) {
+            throw new Exception('proxy record not found');
+        }
+        if (!$record->chatSession) {
+            throw new Exception('proxy record chat session not found');
+        }
+
+        $data = yii::$app->story->saveGeneratedContent(
+            $record->chatSession->storyId,
+            yii::$app->user->id, 
+            $record->chatSession,
+            yii::$app->gemini->getGenerateContentResponseData($postBody['data'], true),
+            $postBody['userPrompt']
         );
 
         return $data;

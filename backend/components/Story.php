@@ -143,111 +143,59 @@ class Story
 
         if (yii::$app->params['usingFrontendProxy']) {
             // 使用前端代理，直接返回需要代理的请求信息
-            $frontendProxy = yii::$app->LLM->getRequestDataFrontendProxy(
-                $prompts, $systemInstruction, true
-            );
-            $tempRecord = new \app\models\FrontendProxyTemp();
-            $tempRecord->chatSessionId = $chatSessionId;
-            $tempRecord->tempId = $frontendProxy['tempId'];
-            $tempRecord->isJson = 1;
-            if (!$tempRecord->save()) {
-                throw new Exception('保存前端代理临时记录失败');
-            }
             return [
-                'frontendProxy' => $frontendProxy,
+                'frontendProxy' => \app\models\FrontendProxyTemp::saveNewTemp(
+                    $chatSessionId,
+                    yii::$app->gemini->getGenerateContentUrl('gemini-1.5-pro'),
+                    yii::$app->gemini->getGenerateContenctRequestBody(
+                        $prompts,
+                        $systemInstruction,
+                        true
+                    ),
+                    true
+                ),
             ];
         }
 
-        $generateContents = yii::$app->LLM->generateChatContent(
-            $prompts, $systemInstruction, true
+        $generateContents = yii::$app->gemini->generateContentInMultiTurnConversations(
+            'gemini-1.5-pro', 
+            $prompts, 
+            $systemInstruction, 
+            true
         );
-        $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->promptHandler->validateGeneratedContent($generateContentJson);
-
-        // 保存用户输入和模型输出
-        $transaction = Yii::$app->db->beginTransaction();
-        try {
-            [$userChatRecordId, $modelChatRecordId] = \app\models\chat\ChatRecord::saveNewPair(
-                $storyId, $chatSessionId, $userId,
-                $userPrompt, $generateContentJson
-            );
-            $transaction->commit();
-        }
-        catch (\Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
-        }
-
-        return [
-            'chatSessionInfo' => [
-                'id' => $chatSessionId,
-                'title' => $chatSession->title,
-            ],
-            'storyContents' => [
-                [
-                    'id' => $userChatRecordId,
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'user',
-                            'content' => $userPrompt,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => $modelChatRecordId,
-                    'role' => 'model',
-                    'content' => $generateContents,
-                ],
-            ],
-        ];
+        return $this->saveGeneratedContent(
+            $storyId, $userId,
+            $chatSession,
+            $generateContents,
+            $userPrompt
+        );
     }
 
-    public function getNewStoryFromFrontendProxy($data, $userId, $tempId, $userPrompt)
+    /**
+     * 生成故事后，将新生成的内容进行保存
+     * @param Int $storyId 故事ID
+     * @param Int $userId 用户ID
+     * @param \app\models\chat\ChatSession $chatSession 会话对象
+     * @param String $generateContents 生成的内容文本
+     * @param String $userPrompt 用户输入的提示词
+     * @throws \Throwable
+     * @return Array 一个关联数组：[ 'chatSessionInfo' => [...], 'storyContents' => [ [...], [...] ] ]
+     */
+    public function saveGeneratedContent(
+        $storyId, $userId,
+        $chatSession,
+        $generateContents,
+        $userPrompt
+    )
     {
-        if (mb_strlen($tempId) > 100) {
-            throw new Exception('前端代理临时ID不能超过100个字符');
-        }
-
-        $userPrompt = trim($userPrompt);
-        if (!$userPrompt) {
-            throw new Exception('用户输入的提示词不能为空');
-        }
-
-        $tempRecord = \app\models\FrontendProxyTemp::find()->where([
-            'tempId' => $tempId,
-        ])->with('chatSession')->one();
-        if (!$tempRecord) {
-            throw new Exception('未找到前端代理临时记录');
-        }
-        if (!$tempRecord->chatSession) {
-            throw new Exception('未找到会话');
-        }
-        if ($tempRecord->chatSession->userId != $userId) {
-            throw new Exception('会话不属于该用户');
-        }
-        $chatSession = $tempRecord->chatSession;
-        $chatSessionId = $tempRecord->chatSessionId;
-        $storyId = $chatSession->storyId;
-        $isJson = $tempRecord->isJson == 0 ? false : true;
-
-        if (!is_array($data)) {
-            throw new Exception('前端代理响应的内容不是数组');
-        }
-        $generateContents = yii::$app->LLM->getGeneratedChatContentFromFrontendProxy(
-            $data, $isJson
-        );
         $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $this->promptHandler->validateGeneratedContent($generateContentJson);
 
         // 保存用户输入和模型输出
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$tempRecord->delete()) {
-                throw new Exception('删除前端代理临时记录失败');
-            }
             [$userChatRecordId, $modelChatRecordId] = \app\models\chat\ChatRecord::saveNewPair(
-                $storyId, $chatSessionId, $userId,
+                $storyId, $chatSession->id, $userId,
                 $userPrompt, $generateContentJson
             );
             $transaction->commit();
@@ -259,7 +207,7 @@ class Story
 
         return [
             'chatSessionInfo' => [
-                'id' => $chatSessionId,
+                'id' => $chatSession->id,
                 'title' => $chatSession->title,
             ],
             'storyContents' => [
