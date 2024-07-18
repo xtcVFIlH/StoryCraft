@@ -6,7 +6,7 @@ use yii;
 use \Exception;
 use app\errors\GeneratedContentFormatException;
 
-class PromptHandler
+class StoryPromptHandler
 {
 
     protected $systemPrompt = null;

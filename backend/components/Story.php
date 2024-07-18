@@ -8,12 +8,12 @@ use \Exception;
 class Story
 {
 
-    /** @var story\PromptHandler */
-    public $promptHandler;
+    /** @var story\StoryPromptHandler */
+    public $storyPromptHandler;
 
     function __construct()
     {
-        $this->promptHandler = Yii::$app->__storyPromptHandler;
+        $this->storyPromptHandler = Yii::$app->__storyPromptHandler;
     }
 
     /**
@@ -137,7 +137,7 @@ class Story
             throw new Exception('用户输入的提示词不能为空');
         }
 
-        $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
+        $prompts = $this->storyPromptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
 
@@ -189,7 +189,7 @@ class Story
     )
     {
         $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->promptHandler->validateGeneratedContent($generateContentJson);
+        $this->storyPromptHandler->validateGeneratedContent($generateContentJson);
 
         // 保存用户输入和模型输出
         $transaction = Yii::$app->db->beginTransaction();

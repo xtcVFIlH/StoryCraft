@@ -20,7 +20,7 @@ $config = [
             'class' => 'app\components\Gemini',
         ],
         '__storyPromptHandler' => [
-            'class' => 'app\components\story\PromptHandler',
+            'class' => 'app\components\story\StoryPromptHandler',
         ],
         'story' => [
             'class' => 'app\components\Story',
