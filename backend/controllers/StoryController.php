@@ -163,6 +163,15 @@ class StoryController extends \yii\web\Controller
         ];
     }
 
+    /**
+     * 编辑故事片段中的情节
+     * @bodyParam chatRecordId int required 对话记录ID
+     * @bodyParam itemInx int required 对话记录中的情节序号
+     * @bodyParam newItemContent String required 新的情节内容
+     * @return Array{
+     *   newContents: \app\components\Story\StorySegment
+     * }
+     */
     public function actionEditModelStoryContent()
     {
         if (yii::$app->user->isGuest) {
@@ -202,6 +211,14 @@ class StoryController extends \yii\web\Controller
         ];
     }
 
+    /**
+     * 删除故事片段中的情节
+     * @bodyParam chatRecordId int required 对话记录ID
+     * @bodyParam itemInx int required 对话记录中的情节序号
+     * @return Array{
+     *   newContents: \app\components\Story\StorySegment
+     * }
+     */
     public function actionDeleteModelStoryContent()
     {
         if (yii::$app->user->isGuest) {

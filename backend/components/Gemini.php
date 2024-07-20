@@ -54,6 +54,7 @@ class Gemini
      * @param Float $temperature 温度，默认为1
      * @param Float|Null $topP topP参数，默认为null
      * @param Float|Null $topK topK参数，默认为null
+     * @return Array<String, Mixed> 请求体内容
      */
     public function getGenerateContenctRequestBody(
         $prompts, 

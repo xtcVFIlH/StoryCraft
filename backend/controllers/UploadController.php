@@ -36,6 +36,18 @@ class UploadController extends \yii\web\Controller
         return true;
     }
 
+    /**
+     * 更新故事信息
+     * @bodyParam storyId int 故事ID (如果不传则新增)
+     * @bodyParam storyInfo Array required 故事信息
+     * @return Array{
+     *   storyId: Int,
+     *   storiesWithIdAndTitle: Array{
+     *     id: Int,
+     *     title: String
+     *   }[]
+     * }
+     */
     public function actionStoryInfo()
     {
         if (yii::$app->user->isGuest) {

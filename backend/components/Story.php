@@ -153,7 +153,7 @@ class Story
      * @param Int $storyId 故事ID
      * @param Int $userId 用户ID
      * @param \app\models\chat\ChatSession $chatSession 会话对象
-     * @param String $generateContents 生成的内容文本
+     * @param Array $generateContents 生成的内容
      * @param String $userPrompt 用户输入的提示词
      * @throws \Throwable
      * @return Array 一个关联数组：[ 'chatSessionInfo' => [...], 'storyContents' => [ [...], [...] ] ]
@@ -245,7 +245,7 @@ class Story
      * 删除一对用户输入、模型输出的记录
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
-     * @return Void
+     * @return Array{0: Int, 1: Int}
      */
     public function deleteChatRecordPair($chatRecordId, $userId)
     {
@@ -263,7 +263,7 @@ class Story
     }
 
     /**
-     * 删除某段模型输出中的某个情节的内容
+     * 删除模型输出的故事片段中某个情节的内容
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
@@ -291,7 +291,7 @@ class Story
     }
 
     /**
-     * 更新某段模型输出中的某个情节的内容
+     * 更新模型输出的故事片段中某个情节的内容
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
@@ -322,6 +322,14 @@ class Story
         return $storySegment;
     }
 
+    /**
+     * 获取用户所有的故事ID和标题
+     * @param Int $userId 用户ID
+     * @return Array{
+     *   id: Int,
+     *   title: String
+     * }[]
+     */
     public function getStoriesWithIdAndTitle($userId) {
         $stories = \app\models\Story::find()
             ->select(['id', 'title'])
