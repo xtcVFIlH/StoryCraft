@@ -165,15 +165,14 @@ class Story
         $userPrompt
     )
     {
-        $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->storyPromptHandler->validateGeneratedContent($generateContentJson);
+        $storySegment = new Story\StorySegment($generateContents);
 
         // 保存用户输入和模型输出
         $transaction = Yii::$app->db->beginTransaction();
         try {
             [$userChatRecordId, $modelChatRecordId] = \app\models\chat\ChatRecord::saveNewPair(
                 $storyId, $chatSession->id, $userId,
-                $userPrompt, $generateContentJson
+                $userPrompt, $storySegment->getContentInJson()
             );
             $transaction->commit();
         }
@@ -201,7 +200,7 @@ class Story
                 [
                     'id' => $modelChatRecordId,
                     'role' => 'model',
-                    'content' => $generateContents,
+                    'content' => $storySegment->getContentInArray()
                 ],
             ],
         ];
@@ -268,7 +267,7 @@ class Story
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
-     * @return Array 更新后的该段模型输出的所有情节
+     * @return \app\components\story\StorySegment 删除后的故事片段
      */
     public function deleteModelContent($chatRecordId, $userId, $itemInx)
     {
@@ -282,19 +281,13 @@ class Story
         if (!$chatRecord->isModelChat()) {
             throw new Exception('非模型输出');
         }
-        $originalContents = json_decode($chatRecord->contentRecord->content, true);
-        if (count($originalContents) == 1) {
-            throw new Exception('无法删除最后一个内容');
-        }
-        if (count($originalContents) <= $itemInx) {
-            throw new Exception('删除的内容不存在');
-        }
-        array_splice($originalContents, $itemInx, 1);
-        $chatRecord->contentRecord->content = json_encode($originalContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $storySegment = new story\StorySegment($chatRecord->contentRecord->content);
+        $storySegment->deleteContent($itemInx);
+        $chatRecord->contentRecord->content = $storySegment->getContentInJson();
         if (!$chatRecord->contentRecord->save()) {
             throw new Exception('保存失败');
         }
-        return $originalContents;
+        return $storySegment;
     }
 
     /**
@@ -303,7 +296,7 @@ class Story
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
      * @param String $newItemContent 新情节内容
-     * @return Array 更新后的该段模型输出的所有情节
+     * @return \app\components\story\StorySegment 更新后的故事片段
      */
     public function editModelContent($chatRecordId, $userId, $itemInx, $newItemContent)
     {
@@ -320,16 +313,13 @@ class Story
         if (!$chatRecord->isModelChat()) {
             throw new Exception('非模型输出');
         }
-        $originalContents = json_decode($chatRecord->contentRecord->content, true);
-        if (count($originalContents) <= $itemInx) {
-            throw new Exception('修改的内容不存在');
-        }
-        $originalContents[$itemInx]['content'] = $newItemContent;
-        $chatRecord->contentRecord->content = json_encode($originalContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $storySegment = new story\StorySegment($chatRecord->contentRecord->content);
+        $storySegment->editContent($itemInx, $newItemContent);
+        $chatRecord->contentRecord->content = $storySegment->getContentInJson();
         if (!$chatRecord->contentRecord->save()) {
             throw new Exception('保存失败');
         }
-        return $originalContents;
+        return $storySegment;
     }
 
     public function getStoriesWithIdAndTitle($userId) {

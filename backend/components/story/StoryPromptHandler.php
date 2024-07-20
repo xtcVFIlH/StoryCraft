@@ -20,35 +20,14 @@ $this->systemPrompt =
 你是一名作家，正在与用户进行一个交互式故事创作活动，你和用户作为故事的共同创作人，轮流推进一个故事。
 prompt;  
 
+$storySegmentFormatPrompt = StorySegment::getFormatPrompt();
+
 $this->requirementsPrompt = <<<prompt
 故事的额外要求如下:
 ---
 
 故事内容格式要求:
-- 使用JSON格式输出故事内容,使用一个数组包含所有内容
-- 角色对话的格式如下：
-```json
-{
-    "type": "dialogue",
-    "character": "角色的完整名字",
-    "content": "角色说的话"
-}
-```
-- 角色行为的格式如下：
-```json
-{
-    "type": "action",
-    "character": "角色的完整名字",
-    "content": "角色行为的描述"
-}
-```
-- 对于其他所有内容,格式如下:
-```json
-{
-	"type": "description",
-	"content": "描述的内容"
-}
-```
+$storySegmentFormatPrompt
 
 故事内容要求：
 - 在用户给出的剧情信息的基础上，续写之后大约5分钟内的剧情；
@@ -59,65 +38,6 @@ $this->requirementsPrompt = <<<prompt
 ---        
 prompt;
 
-    }
-
-    /**
-     * 校验生成的故事内容是否符合格式要求
-     * @param String $content
-     * @return Boolean
-     */
-    public function validateGeneratedContent($content)
-    {
-        $content = json_decode($content, true);
-        if (!is_array($content) || empty($content)) {
-            throw new GeneratedContentFormatException('Story content should be an array', 224);
-        }
-        foreach ($content as $contentItem) {
-            if (!is_array($contentItem)) {
-                throw new GeneratedContentFormatException('Story content should be an array', 224);
-            }
-            if (!isset($contentItem['type'])) {
-                throw new GeneratedContentFormatException('Story content should have type', 224);
-            }
-            if (!in_array($contentItem['type'], ['dialogue', 'action', 'description'])) {
-                throw new GeneratedContentFormatException('Story content type should be dialogue, action or description', 224);
-            }
-            if (!isset($contentItem['content'])) {
-                throw new GeneratedContentFormatException('Story content should have content', 224);
-            }
-            if (!is_string($contentItem['content'])) {
-                throw new GeneratedContentFormatException('Story content should be a string', 224);
-            }
-            if ($contentItem['type'] == 'dialogue' || $contentItem['type'] == 'action') {
-                if (!isset($contentItem['character'])) {
-                    throw new GeneratedContentFormatException('Story content should have character', 224);
-                }
-                if (!is_string($contentItem['character'])) {
-                    throw new GeneratedContentFormatException('Story content character should be a string', 224);
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 将生成的故事内容转换为自然语言形式，用于向模型发送历史内容
-     * @param Array $content
-     * @return String
-     */
-    protected function generatedContentToNaturalLanguage($content)
-    {
-        $text = '';
-        foreach ($content as $contentItem) {
-            if ($contentItem['type'] === 'dialogue') {
-                $text .= $contentItem['character'] . '说：' . $contentItem['content'] . "\n\n";
-            } elseif ($contentItem['type'] === 'action') {
-                $text .= $contentItem['character'] . '：（' . $contentItem['content'] . "）\n\n";
-            } elseif ($contentItem['type'] === 'description') {
-                $text .= '（' . $contentItem['content'] . '）' . "\n\n";
-            }
-        }
-        return $text;
     }
 
     /**
@@ -147,7 +67,7 @@ prompt;
     protected function getUserPrompt($userPrompt)
     {
         $prompt = "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
-        $prompt .= "\n请注意遵守JSON格式要求（若type为action和dialogue，必须包含character字段），并保证输出的JSON数组长度至少为10。";
+        $prompt .= StorySegment::getSuffixFormatPrompt();
         return $prompt;
     }
 
@@ -187,7 +107,8 @@ prompt;
                 $userPrompts->pushUserChat($record->contentRecord->content);
             }
             else {
-                $userPrompts->pushModelChat($this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)));
+                $storySegment = new StorySegment($record->contentRecord->content);
+                $userPrompts->pushModelChat($storySegment->getContentInNaturalLanguage());
             }
         }
         $userPrompts->pushUserChat($this->getUserPrompt($userInputPrompt));
