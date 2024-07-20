@@ -47,11 +47,10 @@ class Gemini
 
     /**
      * 获取生成内容时的请求体内容
-     * @param Array|Text $prompts 
-     * 当为对话交互形式时，为包含历史内容以及新内容的提示词数组: [ ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''] ]；
+     * @param \app\dto\gemini\MultiTurnConversations|String $prompts 
+     * 当为对话交互形式时，为对话内容列表；
      * 当为单独生成内容时，为文本内容
      * @param String $systemInstruction 系统提示词，默认为空字符串
-     * @param Boolean $isMultiTurn 是否为对话交互形式，默认为false
      * @param Float $temperature 温度，默认为1
      * @param Float|Null $topP topP参数，默认为null
      * @param Float|Null $topK topK参数，默认为null
@@ -59,10 +58,11 @@ class Gemini
     public function getGenerateContenctRequestBody(
         $prompts, 
         $systemInstruction = '',
-        $isMultiTurn = true,
         $temperature = 1, $topP = null, $topK = null
     )
     {
+        /** @var Boolean 该次生成是否是交互对话生成 */
+        $isMultiTurn = $prompts instanceof \app\dto\gemini\MultiTurnConversations;
         return [
             'contents' => [
                 $isMultiTurn ? 
@@ -75,7 +75,7 @@ class Gemini
                             ],
                         ],
                     ];
-                }, $prompts) :
+                }, $prompts->getChats()) :
                 [
                     'parts' => [
                         'text' => $prompts,
@@ -133,7 +133,7 @@ class Gemini
     /**
      * 使用对话交互形式生成内容
      * @param String $modelName 模型名称
-     * @param Array $prompts 包含历史内容以及新内容的提示词数组: [ ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''] ]
+     * @param \app\dto\gemini\MultiTurnConversations $prompts 所有对话内容
      * @param String $systemInstruction 系统提示词，默认为空字符串
      * @param Boolean $isJson 生成的文本是否为JSON格式
      * @param Float $temperature 温度，默认为1
@@ -151,7 +151,7 @@ class Gemini
             'POST',
             $this->getGenerateContentPath($modelName),
             [
-                'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, true, $temperature),
+                'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature),
             ]
         );
         $data = json_decode($response->getBody(), true);

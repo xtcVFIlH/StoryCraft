@@ -157,7 +157,10 @@ prompt;
      * @param String $chatSessionId 会话ID
      * @param String $userInputPrompt 新故事文本
      * @param String|Null $customInstructions 额外提示词
-     * @return Array[] 用户提示词数组和系统提示词: ['user' => ['role' => 'user', 'text' => ''], ['role' => 'model', 'text' => ''], 'system' => '', ] 
+     * @return Array{
+     *   user: \app\dto\gemini\MultiTurnConversations,
+     *   system: String
+     * } 用户提示词和系统提示词
      */
     public function getPrompts(
         $story,
@@ -175,21 +178,21 @@ prompt;
             ->with('contentRecord')
             ->orderBy('id ASC')
             ->all();
+        $userPrompts = new \app\dto\gemini\MultiTurnConversations;
         foreach ($chatRecords as $record) {
             if (!$record->contentRecord) {
                 throw new Exception('content record not found');
             }
-            $prompts []= [
-                'role' => $record->isUserChat() ? 'user' : 'model',
-                'text' => $record->isUserChat() ? $record->contentRecord->content : $this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)),
-            ];
+            if ($record->isUserChat()) {
+                $userPrompts->pushUserChat($record->contentRecord->content);
+            }
+            else {
+                $userPrompts->pushModelChat($this->generatedContentToNaturalLanguage(json_decode($record->contentRecord->content, true)));
+            }
         }
-        $prompts []= [
-            'role' => 'user',
-            'text' => $this->getUserPrompt($userInputPrompt),
-        ];
+        $userPrompts->pushUserChat($this->getUserPrompt($userInputPrompt));
         return [
-            'user' => $prompts,
+            'user' => $userPrompts,
             'system' => $this->getSystemPrompt($story, $customInstructions),
         ];
     }

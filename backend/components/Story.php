@@ -127,8 +127,7 @@ class Story
                     yii::$app->gemini->getGenerateContentUrl('gemini-1.5-pro'),
                     yii::$app->gemini->getGenerateContenctRequestBody(
                         $prompts,
-                        $systemInstruction,
-                        true
+                        $systemInstruction
                     ),
                     true
                 ),
