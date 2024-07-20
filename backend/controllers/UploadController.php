@@ -50,7 +50,8 @@ class UploadController extends \yii\web\Controller
             throw new Exception('StoryInfo cannot be empty');
         }
 
-        $storyId = Yii::$app->story->updateStory($postBody['storyInfo'], $userId, $storyId);
+        $storyInfoDto = new \app\dto\story\StoryInfo($postBody['storyInfo']);
+        $storyId = Yii::$app->story->updateStory($storyInfoDto, $userId, $storyId);
 
         return [
             'storyId' => $storyId,

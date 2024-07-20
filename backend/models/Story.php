@@ -47,6 +47,20 @@ class Story extends ActiveRecord
     }
 
     /**
+     * @return \app\dto\story\StoryInfo
+     */
+    public function getStoryInfoDto()
+    {
+        return new \app\dto\story\StoryInfo([
+            'title' => $this->title,
+            'backgroundInfo' => $this->backgroundInfo,
+            'characterInfos' => array_map(function($character) {
+                return $character->toArray();
+            }, $this->characters),
+        ]);
+    }
+
+    /**
      * 获取该故事信息的prompt
      * 包含故事背景prompt和角色信息prompt
      * @return String

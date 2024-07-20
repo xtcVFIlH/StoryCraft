@@ -17,9 +17,10 @@ class Story
     }
 
     /**
+     * @param \app\dto\story\StoryInfo $storyInfoDto
      * @return Int 故事ID
      */
-    public function updateStory($data, $userId, $storyId = null)
+    public function updateStory($storyInfoDto, $userId, $storyId = null)
     {
         if ($storyId) 
         {
@@ -33,31 +34,8 @@ class Story
             $story = new \app\models\Story();
         }
 
-        // 简单校验，具体校验由model完成
-        if (!isset($data['title'])) {
-            throw new Exception('故事标题不能为空');
-        }
-        if (!isset($data['backgroundInfo'])) {
-            throw new Exception('故事背景不能为空');
-        }
-        if (!isset($data['characterInfos'])) {
-            throw new Exception('故事角色不能为空');
-        }
-        if (!is_array($data['characterInfos'])) {
-            throw new Exception('故事角色格式错误');
-        }
+        $data = $storyInfoDto->toArray();
         $characters = $data['characterInfos'];
-        if (empty($characters)) {
-            throw new Exception('故事角色不能为空');
-        }
-        foreach ($characters as $character) {
-            if (!isset($character['name'])) {
-                throw new Exception('角色名称不能为空');
-            }
-            if (!isset($character['feature'])) {
-                throw new Exception('角色特征不能为空');
-            }
-        }
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
