@@ -25,6 +25,11 @@ class StoryController extends \yii\web\Controller
         return true;
     }
 
+    /**
+     * 获取当前用户所有的某个故事的信息
+     * @bodyParam storyId int required 故事ID
+     * @return \app\dto\story\StoryInfo
+     */
     public function actionGetStoryInfo()
     {
         if (yii::$app->user->isGuest) {
@@ -38,16 +43,15 @@ class StoryController extends \yii\web\Controller
         }
         $storyId = $postBody['storyId'];
 
-        $story = \app\models\Story::findOne($storyId);
+        $story = \app\models\Story::find()
+            ->where(['id' => $storyId, 'userId' => yii::$app->user->id])
+            ->with('characters')
+            ->one();
         if (!$story) {
             throw new Exception('story not found: ' . $storyId);
         }
         
-        return [
-            'title' => $story->title,
-            'backgroundInfo' => $story->backgroundInfo,
-            'characterInfos' => $story->characters,
-        ];
+        return $story->getStoryInfoDto();
     }
 
     public function actionGenerate()
@@ -159,6 +163,15 @@ class StoryController extends \yii\web\Controller
         ];
     }
 
+    /**
+     * 编辑故事片段中的情节
+     * @bodyParam chatRecordId int required 对话记录ID
+     * @bodyParam itemInx int required 对话记录中的情节序号
+     * @bodyParam newItemContent String required 新的情节内容
+     * @return Array{
+     *   newContents: \app\components\Story\StorySegment
+     * }
+     */
     public function actionEditModelStoryContent()
     {
         if (yii::$app->user->isGuest) {
@@ -198,6 +211,14 @@ class StoryController extends \yii\web\Controller
         ];
     }
 
+    /**
+     * 删除故事片段中的情节
+     * @bodyParam chatRecordId int required 对话记录ID
+     * @bodyParam itemInx int required 对话记录中的情节序号
+     * @return Array{
+     *   newContents: \app\components\Story\StorySegment
+     * }
+     */
     public function actionDeleteModelStoryContent()
     {
         if (yii::$app->user->isGuest) {

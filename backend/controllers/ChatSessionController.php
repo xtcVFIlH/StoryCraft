@@ -10,6 +10,18 @@ class ChatSessionController extends base\Controller
 
     public $enableCsrfValidation = false;
 
+    /**
+     * 更新或新增会话
+     * @bodyParam storyId int required 故事ID
+     * @bodyParam chatSessionId int 会话ID，如果不传则新增
+     * @bodyParam title string required 会话标题
+     * @bodyParam customInstructions string 自定义指令
+     * @return Array{
+     *   chatSessionId: Int,
+     *   title: String,
+     *   customInstructions: String
+     * }
+     */
     public function actionUpdate()
     {
         if (yii::$app->user->isGuest) {
@@ -67,6 +79,12 @@ class ChatSessionController extends base\Controller
         ];
     }
 
+    /**
+     * 删除会话
+     * @bodyParam chatSessionId int required 会话ID
+     * @bodyParam storyId int required 故事ID
+     * @return Array{} 删除成功返回一个空数组
+     */
     public function actionDelete()
     {
         if (yii::$app->user->isGuest) {
@@ -98,6 +116,16 @@ class ChatSessionController extends base\Controller
         return [];
     }
 
+    /**
+     * 获取当前用户的某个会话的信息
+     * @bodyParam chatSessionId int required 会话ID
+     * @bodyParam storyId int required 故事ID
+     * @return Array{
+     *   chatSessionId: Int,
+     *   title: String,
+     *   customInstructions: String
+     * }
+     */
     public function actionGetOne()
     {
         if (yii::$app->user->isGuest) {
@@ -128,6 +156,16 @@ class ChatSessionController extends base\Controller
         ];
     }
 
+    /**
+     * 获取当前用户在某个故事下所有会话的简略信息
+     * @bodyParam storyId int required 故事ID
+     * @return Array{
+     *   chatSessions: Array{
+     *     id: Int,
+     *     title: String
+     *   }
+     * }
+     */
     public function actionGetAll()
     {
         if (yii::$app->user->isGuest) {

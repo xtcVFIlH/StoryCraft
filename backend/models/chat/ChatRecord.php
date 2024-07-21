@@ -19,17 +19,15 @@ class ChatRecord extends ActiveRecord {
         return $this->hasOne(ChatRecordContent::className(), ['chatRecordId' => 'id']);
     }
 
-    protected static $roleIdTable = [
-        1 => 'user',
-        2 => 'model',
-    ];
+    protected static $ROLE_USER = 1;
+    protected static $ROLE_MODEL = 2;
     public function isUserChat()
     {
-        return $this->roleId == 1;
+        return $this->roleId == static::$ROLE_USER;
     }
     public function isModelChat()
     {
-        return $this->roleId == 2;
+        return $this->roleId == static::$ROLE_MODEL;
     }
 
     /**
@@ -45,7 +43,7 @@ class ChatRecord extends ActiveRecord {
         $record->chatSessionId = $chatSessionId;
         $record->storyId = $storyId;
         $record->userId = $userId;
-        $record->roleId = $isUserChat ? 1 : 2;
+        $record->roleId = $isUserChat ? static::$ROLE_USER : static::$ROLE_MODEL;
         $record->createAt = time();
         if (!$record->save()) {
             throw new Exception('Failed to save chat record');
@@ -60,9 +58,8 @@ class ChatRecord extends ActiveRecord {
     }
 
     /**
-     * 新建一对聊天记录（用户和模型），
-     * 需要在事务中调用
-     * @return Int[] 保存的记录ID
+     * 新建一对聊天记录（用户和模型），需要在事务中调用
+     * @return Array{0: Int, 1: Int} 新建的记录ID，包含用户和模型的记录ID
      */
     static public function saveNewPair(
         $storyId, $chatSessionId, $userId,
@@ -83,9 +80,8 @@ class ChatRecord extends ActiveRecord {
     }
 
     /**
-     * 删除一对聊天记录，
-     * 需要在事务中调用
-     * @return Int 删除的记录ID
+     * 删除一对聊天记录，需要在事务中调用
+     * @return Array{0: Int, 1: Int} 删除的记录ID，包含用户和模型的记录ID
      */
     static public function deletePair(
         $chatRecordId, $userId   

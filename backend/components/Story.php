@@ -4,22 +4,24 @@ namespace app\components;
 
 use Yii;
 use \Exception;
+use \app\dto\story\StoryContent as StoryContentClientDTO;
 
 class Story
 {
 
-    /** @var story\PromptHandler */
-    public $promptHandler;
+    /** @var story\StoryPromptHandler */
+    public $storyPromptHandler;
 
     function __construct()
     {
-        $this->promptHandler = Yii::$app->__storyPromptHandler;
+        $this->storyPromptHandler = Yii::$app->__storyPromptHandler;
     }
 
     /**
+     * @param \app\dto\story\StoryInfo $storyInfoDto
      * @return Int 故事ID
      */
-    public function updateStory($data, $userId, $storyId = null)
+    public function updateStory($storyInfoDto, $userId, $storyId = null)
     {
         if ($storyId) 
         {
@@ -33,31 +35,8 @@ class Story
             $story = new \app\models\Story();
         }
 
-        // 简单校验，具体校验由model完成
-        if (!isset($data['title'])) {
-            throw new Exception('故事标题不能为空');
-        }
-        if (!isset($data['backgroundInfo'])) {
-            throw new Exception('故事背景不能为空');
-        }
-        if (!isset($data['characterInfos'])) {
-            throw new Exception('故事角色不能为空');
-        }
-        if (!is_array($data['characterInfos'])) {
-            throw new Exception('故事角色格式错误');
-        }
+        $data = $storyInfoDto->toArray();
         $characters = $data['characterInfos'];
-        if (empty($characters)) {
-            throw new Exception('故事角色不能为空');
-        }
-        foreach ($characters as $character) {
-            if (!isset($character['name'])) {
-                throw new Exception('角色名称不能为空');
-            }
-            if (!isset($character['feature'])) {
-                throw new Exception('角色特征不能为空');
-            }
-        }
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -137,7 +116,7 @@ class Story
             throw new Exception('用户输入的提示词不能为空');
         }
 
-        $prompts = $this->promptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
+        $prompts = $this->storyPromptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
 
@@ -149,8 +128,7 @@ class Story
                     yii::$app->gemini->getGenerateContentUrl('gemini-1.5-pro'),
                     yii::$app->gemini->getGenerateContenctRequestBody(
                         $prompts,
-                        $systemInstruction,
-                        true
+                        $systemInstruction
                     ),
                     true
                 ),
@@ -176,11 +154,17 @@ class Story
      * @param Int $storyId 故事ID
      * @param Int $userId 用户ID
      * @param \app\models\chat\ChatSession $chatSession 会话对象
-     * @param String $generateContents 生成的内容文本
+     * @param Array $generateContents 生成的内容
      * @param String $userPrompt 用户输入的提示词
      * @throws \Throwable
-     * @return Array 一个关联数组：[ 'chatSessionInfo' => [...], 'storyContents' => [ [...], [...] ] ]
-     */
+     * @return Array{
+     *   chatSessionInfo: Array{
+     *     id: Int,
+     *     title: String
+     *   },
+     *   storyContents: \app\dto\story\StoryContent[]
+     * } 返回会话信息和新生成的故事内容（用户输入和模型输出）
+     */    
     public function saveGeneratedContent(
         $storyId, $userId,
         $chatSession,
@@ -188,15 +172,14 @@ class Story
         $userPrompt
     )
     {
-        $generateContentJson = json_encode($generateContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->promptHandler->validateGeneratedContent($generateContentJson);
+        $storySegment = new Story\StorySegment($generateContents);
 
         // 保存用户输入和模型输出
         $transaction = Yii::$app->db->beginTransaction();
         try {
             [$userChatRecordId, $modelChatRecordId] = \app\models\chat\ChatRecord::saveNewPair(
                 $storyId, $chatSession->id, $userId,
-                $userPrompt, $generateContentJson
+                $userPrompt, $storySegment->getContentInJson()
             );
             $transaction->commit();
         }
@@ -211,25 +194,16 @@ class Story
                 'title' => $chatSession->title,
             ],
             'storyContents' => [
-                [
-                    'id' => $userChatRecordId,
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'user',
-                            'content' => $userPrompt,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => $modelChatRecordId,
-                    'role' => 'model',
-                    'content' => $generateContents,
-                ],
+                StoryContentClientDTO::newUserContent($userChatRecordId, $userPrompt),
+                StoryContentClientDTO::newModelContent($modelChatRecordId, $storySegment),
             ],
         ];
     }
 
+    /**
+     * 获取故事的历史内容
+     * @return StoryContentClientDTO[]
+     */
     public function getAllStoryContents($userId, $storyId, $chatSessionId)
     {
         $chatRecords = \app\models\chat\ChatRecord::find()
@@ -248,19 +222,13 @@ class Story
             if ($record->userId != $userId) {
                 throw new Exception('用户不匹配');
             }
-            $chatRecordsArray[] = [
-                'id' => $record->id,
-                'role' => $record->isUserChat() ? 'user' : 'model',
-                'content' => 
-                    $record->isUserChat() ?
-                    [
-                        [
-                            'type' => 'user',
-                            'content' => $record->contentRecord->content,
-                        ],
-                    ] :
-                    json_decode($record->contentRecord->content, true),
-            ];
+            if ($record->isUserChat()) {
+                $chatRecordsArray []= StoryContentClientDTO::newUserContent($record->id, $record->contentRecord->content);
+            }
+            else {
+                $storySegment = new story\StorySegment($record->contentRecord->content);
+                $chatRecordsArray []= StoryContentClientDTO::newModelContent($record->id, $storySegment);
+            }
         }
         return $chatRecordsArray;
     }
@@ -269,7 +237,7 @@ class Story
      * 删除一对用户输入、模型输出的记录
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
-     * @return Void
+     * @return Array{0: Int, 1: Int}
      */
     public function deleteChatRecordPair($chatRecordId, $userId)
     {
@@ -287,11 +255,11 @@ class Story
     }
 
     /**
-     * 删除某段模型输出中的某个情节的内容
+     * 删除模型输出的故事片段中某个情节的内容
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
-     * @return Array 更新后的该段模型输出的所有情节
+     * @return \app\components\story\StorySegment 删除后的故事片段
      */
     public function deleteModelContent($chatRecordId, $userId, $itemInx)
     {
@@ -305,28 +273,22 @@ class Story
         if (!$chatRecord->isModelChat()) {
             throw new Exception('非模型输出');
         }
-        $originalContents = json_decode($chatRecord->contentRecord->content, true);
-        if (count($originalContents) == 1) {
-            throw new Exception('无法删除最后一个内容');
-        }
-        if (count($originalContents) <= $itemInx) {
-            throw new Exception('删除的内容不存在');
-        }
-        array_splice($originalContents, $itemInx, 1);
-        $chatRecord->contentRecord->content = json_encode($originalContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $storySegment = new story\StorySegment($chatRecord->contentRecord->content);
+        $storySegment->deleteContent($itemInx);
+        $chatRecord->contentRecord->content = $storySegment->getContentInJson();
         if (!$chatRecord->contentRecord->save()) {
             throw new Exception('保存失败');
         }
-        return $originalContents;
+        return $storySegment;
     }
 
     /**
-     * 更新某段模型输出中的某个情节的内容
+     * 更新模型输出的故事片段中某个情节的内容
      * @param Int $chatRecordId 聊天记录ID
      * @param Int $userId 用户ID
      * @param Int $itemInx 情节索引
      * @param String $newItemContent 新情节内容
-     * @return Array 更新后的该段模型输出的所有情节
+     * @return \app\components\story\StorySegment 更新后的故事片段
      */
     public function editModelContent($chatRecordId, $userId, $itemInx, $newItemContent)
     {
@@ -343,18 +305,23 @@ class Story
         if (!$chatRecord->isModelChat()) {
             throw new Exception('非模型输出');
         }
-        $originalContents = json_decode($chatRecord->contentRecord->content, true);
-        if (count($originalContents) <= $itemInx) {
-            throw new Exception('修改的内容不存在');
-        }
-        $originalContents[$itemInx]['content'] = $newItemContent;
-        $chatRecord->contentRecord->content = json_encode($originalContents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $storySegment = new story\StorySegment($chatRecord->contentRecord->content);
+        $storySegment->editContent($itemInx, $newItemContent);
+        $chatRecord->contentRecord->content = $storySegment->getContentInJson();
         if (!$chatRecord->contentRecord->save()) {
             throw new Exception('保存失败');
         }
-        return $originalContents;
+        return $storySegment;
     }
 
+    /**
+     * 获取用户所有的故事ID和标题
+     * @param Int $userId 用户ID
+     * @return Array{
+     *   id: Int,
+     *   title: String
+     * }[]
+     */
     public function getStoriesWithIdAndTitle($userId) {
         $stories = \app\models\Story::find()
             ->select(['id', 'title'])
