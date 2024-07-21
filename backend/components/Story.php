@@ -4,6 +4,7 @@ namespace app\components;
 
 use Yii;
 use \Exception;
+use \app\dto\story\StoryContent as StoryContentClientDTO;
 
 class Story
 {
@@ -156,8 +157,14 @@ class Story
      * @param Array $generateContents 生成的内容
      * @param String $userPrompt 用户输入的提示词
      * @throws \Throwable
-     * @return Array 一个关联数组：[ 'chatSessionInfo' => [...], 'storyContents' => [ [...], [...] ] ]
-     */
+     * @return Array{
+     *   chatSessionInfo: Array{
+     *     id: Int,
+     *     title: String
+     *   },
+     *   storyContents: \app\dto\story\StoryContent[]
+     * } 返回会话信息和新生成的故事内容（用户输入和模型输出）
+     */    
     public function saveGeneratedContent(
         $storyId, $userId,
         $chatSession,
@@ -187,25 +194,16 @@ class Story
                 'title' => $chatSession->title,
             ],
             'storyContents' => [
-                [
-                    'id' => $userChatRecordId,
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'user',
-                            'content' => $userPrompt,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => $modelChatRecordId,
-                    'role' => 'model',
-                    'content' => $storySegment->getContentInArray()
-                ],
+                StoryContentClientDTO::newUserContent($userChatRecordId, $userPrompt),
+                StoryContentClientDTO::newModelContent($modelChatRecordId, $storySegment),
             ],
         ];
     }
 
+    /**
+     * 获取故事的历史内容
+     * @return StoryContentClientDTO[]
+     */
     public function getAllStoryContents($userId, $storyId, $chatSessionId)
     {
         $chatRecords = \app\models\chat\ChatRecord::find()
@@ -224,19 +222,13 @@ class Story
             if ($record->userId != $userId) {
                 throw new Exception('用户不匹配');
             }
-            $chatRecordsArray[] = [
-                'id' => $record->id,
-                'role' => $record->isUserChat() ? 'user' : 'model',
-                'content' => 
-                    $record->isUserChat() ?
-                    [
-                        [
-                            'type' => 'user',
-                            'content' => $record->contentRecord->content,
-                        ],
-                    ] :
-                    json_decode($record->contentRecord->content, true),
-            ];
+            if ($record->isUserChat()) {
+                $chatRecordsArray []= StoryContentClientDTO::newUserContent($record->id, $record->contentRecord->content);
+            }
+            else {
+                $storySegment = new story\StorySegment($record->contentRecord->content);
+                $chatRecordsArray []= StoryContentClientDTO::newModelContent($record->id, $storySegment);
+            }
         }
         return $chatRecordsArray;
     }
