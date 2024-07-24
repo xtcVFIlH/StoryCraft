@@ -11,10 +11,13 @@ class Story
 
     /** @var story\StoryPromptHandler */
     public $storyPromptHandler;
+    /** @var story\ExtractKeypointsPromptHandler */
+    public $extractKeypointsPromptHandler;
 
     function __construct()
     {
         $this->storyPromptHandler = Yii::$app->__storyPromptHandler;
+        $this->extractKeypointsPromptHandler = Yii::$app->__extractKeypointsPromptHandler;
     }
 
     /**
@@ -116,7 +119,19 @@ class Story
             throw new Exception('用户输入的提示词不能为空');
         }
 
-        $prompts = $this->storyPromptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions);
+        $extractKeypointsPrompts = $this->extractKeypointsPromptHandler->getPrompts($story, $chatSessionId);
+        if ($extractKeypointsPrompts !== null) {
+            /** @var String 提取的关键点 */
+            $extractedKeypoints = yii::$app->gemini->generateContentInOneTurn(
+                'gemini-1.5-flash', 
+                $extractKeypointsPrompts['userPrompt'],
+                $extractKeypointsPrompts['systemInstructions'],
+                false,
+                0.2
+            );
+        }
+
+        $prompts = $this->storyPromptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions, isset($extractedKeypoints) ? $extractedKeypoints : null);
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
 
