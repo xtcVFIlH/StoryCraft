@@ -52,6 +52,7 @@ class Gemini
      * 当为单独生成内容时，为文本内容
      * @param String $systemInstruction 系统提示词，默认为空字符串
      * @param Float $temperature 温度，默认为1
+     * @param Boolean $isJson 生成的文本是否为JSON格式，默认为false
      * @param Float|Null $topP topP参数，默认为null
      * @param Float|Null $topK topK参数，默认为null
      * @return Array<String, Mixed> 请求体内容
@@ -59,7 +60,7 @@ class Gemini
     public function getGenerateContenctRequestBody(
         $prompts, 
         $systemInstruction = '',
-        $temperature = 1, $topP = null, $topK = null
+        $temperature = 1, $isJson = true, $topP = null, $topK = null
     )
     {
         /** @var Boolean 该次生成是否是交互对话生成 */
@@ -86,7 +87,7 @@ class Gemini
             'safetySettings' => $this->safetySettings,
             'generationConfig' => array_filter([
                 'temperature' => $temperature,
-                'responseMimeType' => 'application/json',
+                'responseMimeType' => $isJson ? 'application/json' : 'text/plain',
                 'topP' => $topP ?? null,
                 'topK' => $topK ?? null,
             ]),
@@ -152,7 +153,35 @@ class Gemini
             'POST',
             $this->getGenerateContentPath($modelName),
             [
-                'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature),
+                'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature, $isJson),
+            ]
+        );
+        $data = json_decode($response->getBody(), true);
+        return $this->getGenerateContentResponseData($data, $isJson);
+    }
+
+    /**
+     * 使用单次文本补全生成内容
+     * @param String $modelName 模型名称
+     * @param String $prompt 用户提示词
+     * @param String $systemInstruction 系统提示词，默认为空字符串
+     * @param Boolean $isJson 生成的文本是否为JSON格式
+     * @param Float $temperature 温度，默认为1
+     * @return String|Array 若$isJson为true则返回数组，否则返回字符串
+     */
+    public function generateContentInOneTurn(
+        $modelName,
+        $prompt,
+        $systemInstruction = '',
+        $isJson = false,
+        $temperature = 1
+    )
+    {
+        $response = $this->client->request(
+            'POST',
+            $this->getGenerateContentPath($modelName),
+            [
+                'json' => $this->getGenerateContenctRequestBody($prompt, $systemInstruction, $temperature, $isJson),
             ]
         );
         $data = json_decode($response->getBody(), true);
