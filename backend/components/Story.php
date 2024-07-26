@@ -83,7 +83,7 @@ class Story
      * @param String $userPrompt 用户输入的提示词
      * @param Int $storyId 故事ID
      * @param Int|Null $chatSessionId 会话ID 为null时表示新会话
-     * @return Array|Boolean 获取失败时返回false，否则返回数据数组，或在使用前端代理时返回请求信息
+     * @return Array|Boolean 获取失败时返回false，否则返回数据数组
      */
     public function getNewStory($userId, $userPrompt, $storyId, $chatSessionId)
     {
@@ -134,23 +134,6 @@ class Story
         $prompts = $this->storyPromptHandler->getPrompts($story, $chatSessionId, $userPrompt, $chatSession->customInstructions, isset($extractedKeypoints) ? $extractedKeypoints : null);
         $systemInstruction = $prompts['system'];
         $prompts = $prompts['user'];
-
-        if (yii::$app->params['usingFrontendProxy']) {
-            // 使用前端代理，直接返回需要代理的请求信息
-            return [
-                'frontendProxy' => \app\models\FrontendProxyTemp::saveNewTemp(
-                    $chatSessionId,
-                    yii::$app->gemini->getGenerateContentUrl('gemini-1.5-pro'),
-                    yii::$app->gemini->getGenerateContenctRequestBody(
-                        $prompts,
-                        $systemInstruction,
-                        1.0,
-                        true
-                    ),
-                    true
-                ),
-            ];
-        }
 
         $generateContents = yii::$app->gemini->generateContentInMultiTurnConversations(
             'gemini-1.5-pro', 

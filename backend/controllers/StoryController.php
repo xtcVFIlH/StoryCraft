@@ -75,46 +75,6 @@ class StoryController extends \yii\web\Controller
         return $data;
     }
 
-    public function actionUpdateGeneratedContentFromFrontendProxy()
-    {
-        if (yii::$app->user->isGuest) {
-            throw new Exception('User not logged in');
-        }
-        $postBody = json_decode(Yii::$app->request->getRawBody(), true);
-
-        if (!isset($postBody['data'])) {
-            throw new Exception('data cannot be empty');
-        }
-
-        if (!isset($postBody['tempId'])) 
-        {
-            throw new Exception('tempId cannot be empty');
-        }
-
-        if (!isset($postBody['userPrompt'])) 
-        {
-            throw new Exception('userPrompt cannot be empty');
-        }
-
-        $record = \app\models\FrontendProxyTemp::findOne(['tempId' => $postBody['tempId']]);
-        if (!$record) {
-            throw new Exception('proxy record not found');
-        }
-        if (!$record->chatSession) {
-            throw new Exception('proxy record chat session not found');
-        }
-
-        $data = yii::$app->story->saveGeneratedContent(
-            $record->chatSession->storyId,
-            yii::$app->user->id, 
-            $record->chatSession,
-            yii::$app->gemini->getGenerateContentResponseData($postBody['data'], true),
-            $postBody['userPrompt']
-        );
-
-        return $data;
-    }
-
     public function actionGetAllStoryContents()
     {
         if (yii::$app->user->isGuest) {
