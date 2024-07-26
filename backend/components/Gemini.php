@@ -149,14 +149,23 @@ class Gemini
         $temperature = 1
     )
     {
-        $response = $this->client->request(
-            'POST',
-            $this->getGenerateContentPath($modelName),
-            [
-                'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature, $isJson),
-            ]
-        );
-        $data = json_decode($response->getBody(), true);
+        if (!yii::$app->frontendProxy->proxyUsed) {
+            $response = $this->client->request(
+                'POST',
+                $this->getGenerateContentPath($modelName),
+                [
+                    'json' => $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature, $isJson),
+                ]
+            );
+            $data = json_decode($response->getBody(), true);
+        }
+        else {
+            $response = yii::$app->frontendProxy->post(
+                $this->getGenerateContentUrl($modelName),
+                $this->getGenerateContenctRequestBody($prompts, $systemInstruction, $temperature, $isJson)
+            );
+            $data = $response;
+        }
         return $this->getGenerateContentResponseData($data, $isJson);
     }
 
@@ -177,14 +186,23 @@ class Gemini
         $temperature = 1
     )
     {
-        $response = $this->client->request(
-            'POST',
-            $this->getGenerateContentPath($modelName),
-            [
-                'json' => $this->getGenerateContenctRequestBody($prompt, $systemInstruction, $temperature, $isJson),
-            ]
-        );
-        $data = json_decode($response->getBody(), true);
+        if (!yii::$app->frontendProxy->proxyUsed) {
+            $response = $this->client->request(
+                'POST',
+                $this->getGenerateContentPath($modelName),
+                [
+                    'json' => $this->getGenerateContenctRequestBody($prompt, $systemInstruction, $temperature, $isJson),
+                ]
+            );
+            $data = json_decode($response->getBody(), true);
+        }
+        else {
+            $response = yii::$app->frontendProxy->post(
+                $this->getGenerateContentUrl($modelName),
+                $this->getGenerateContenctRequestBody($prompt, $systemInstruction, $temperature, $isJson)
+            );
+            $data = $response;
+        }
         return $this->getGenerateContentResponseData($data, $isJson);
     }
 

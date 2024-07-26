@@ -6,15 +6,23 @@ let tokenPromise = null;
 
 export function useRequest() {
     const userToken = useLocalStorage('userToken', null);
+    const frontendProxyId = useLocalStorage('frontend_proxy_id', null);
 
-    const request = (path, json = {}, query = {}, cancelToken = null) => {
+    const request = (
+        path, json = {}, query = {}, cancelToken = null,
+        noUserToken = false
+    ) => {
         const uri = process.env.VUE_APP_BACKEND_URI;
+
+        if (frontendProxyId.value) {
+            query.frontend_proxy_id = frontendProxyId.value;
+        }
 
         if (!uri) {
             return Promise.reject('未配置VUE_APP_BACKEND_URI');
         }
 
-        if (userToken.value) {
+        if (userToken.value || noUserToken) {
             tokenPromise = Promise.resolve();
         } else if (!tokenPromise) {
             tokenPromise = ElMessageBox.prompt('请输入token', '提示', {

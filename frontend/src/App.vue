@@ -52,6 +52,7 @@
             @update-chat-session-info="updateChatSessionInfo"
         >
         </chat-session-info-editor-dialog>
+        <frontend-proxy />
     </div>
 </template>
 
@@ -61,6 +62,7 @@ import StoryGenerateArea from './components/StoryGenerateArea.vue'
 import StoryInfoEditorDialog from './components/StoryInfoEditorDialog.vue'
 import ChatSessionVerticalBar from './components/ChatSessionVerticalBar.vue'
 import ChatSessionInfoEditorDialog from './components/ChatSessionInfoEditorDialog.vue'
+import FrontendProxy from './components/FrontendProxy.vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 
 import { ref, watch } from 'vue'
