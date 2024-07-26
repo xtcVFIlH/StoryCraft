@@ -59,6 +59,9 @@ class StoryController extends \yii\web\Controller
         if (yii::$app->user->isGuest) {
             throw new Exception('User not logged in');
         }
+
+        set_time_limit(45);
+
         $postBody = json_decode(Yii::$app->request->getRawBody(), true);
 
         if (!isset($postBody['userPrompt']) || trim($postBody['userPrompt']) === '') {
