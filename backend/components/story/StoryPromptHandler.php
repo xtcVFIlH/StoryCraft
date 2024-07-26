@@ -62,11 +62,14 @@ prompt;
 
     /**
      * 获取完整的用户提示词
+     * @param String $userPrompt 用户输入的新故事文本
+     * @param String|Null $extractedKeypoints 提取的历史故事内容关键点
      * @return String
      */
-    protected function getUserPrompt($userPrompt)
+    protected function getUserPrompt($userPrompt, $extractedKeypoints = null)
     {
-        $prompt = "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
+        $prompt = $extractedKeypoints ? "之前的故事内容梗概:\n---\n\n$extractedKeypoints\n\n---\n\n" : '';
+        $prompt .= "新的剧情信息如下:\n---\n\n" . $userPrompt . "\n\n---";
         $prompt .= StorySegment::getSuffixFormatPrompt();
         return $prompt;
     }
@@ -77,6 +80,7 @@ prompt;
      * @param String $chatSessionId 会话ID
      * @param String $userInputPrompt 新故事文本
      * @param String|Null $customInstructions 额外提示词
+     * @param String|Null $extractedKeypoints 提取的历史故事内容关键点
      * @return Array{
      *   user: \app\dto\gemini\MultiTurnConversations,
      *   system: String
@@ -86,7 +90,8 @@ prompt;
         $story,
         $chatSessionId,
         $userInputPrompt,
-        $customInstructions = null
+        $customInstructions = null,
+        $extractedKeypoints = null
     )
     {
         // 获取历史会话
@@ -111,7 +116,7 @@ prompt;
                 $userPrompts->pushModelChat($storySegment->getContentInNaturalLanguage());
             }
         }
-        $userPrompts->pushUserChat($this->getUserPrompt($userInputPrompt));
+        $userPrompts->pushUserChat($this->getUserPrompt($userInputPrompt, $extractedKeypoints));
         return [
             'user' => $userPrompts,
             'system' => $this->getSystemPrompt($story, $customInstructions),

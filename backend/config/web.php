@@ -22,6 +22,12 @@ $config = [
         '__storyPromptHandler' => [
             'class' => 'app\components\story\StoryPromptHandler',
         ],
+        '__extractKeypointsPromptHandler' => [
+            'class' => 'app\components\story\ExtractKeypointsPromptHandler',
+        ],
+        'frontendProxy' => [
+            'class' => 'app\components\FrontendProxy',
+        ],
         'story' => [
             'class' => 'app\components\Story',
         ],

@@ -52,6 +52,7 @@
             @update-chat-session-info="updateChatSessionInfo"
         >
         </chat-session-info-editor-dialog>
+        <frontend-proxy />
     </div>
 </template>
 
@@ -61,9 +62,9 @@ import StoryGenerateArea from './components/StoryGenerateArea.vue'
 import StoryInfoEditorDialog from './components/StoryInfoEditorDialog.vue'
 import ChatSessionVerticalBar from './components/ChatSessionVerticalBar.vue'
 import ChatSessionInfoEditorDialog from './components/ChatSessionInfoEditorDialog.vue'
+import FrontendProxy from './components/FrontendProxy.vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 
-import axios from 'axios'
 import { ref, watch } from 'vue'
 import { useRequest } from '@/composables/useRequest'
 
@@ -195,26 +196,6 @@ const generateStory = userPrompt => {
         storyId: storyId.value,
         userPrompt,
         chatSessionId: chatSessionInfo.value.id,
-    })
-    .then((data) => {
-        if (data.frontendProxy) {
-            // 后端开启了前端代理，由前端发送模型生成的API
-            const url = data.frontendProxy.url;
-            const json = data.frontendProxy.json;
-            const query = data.frontendProxy.query;
-            const tempId = data.frontendProxy.tempId;
-            return axios.post(url, json, { params: query })
-            .then((response) => {
-                return request('/story/update-generated-content-from-frontend-proxy', {
-                    data: response.data,
-                    userPrompt,
-                    tempId,
-                })
-            });
-        }
-        else {
-            return Promise.resolve(data);
-        }
     })
     .then((data) => {
         storyContents.value.push(...data.storyContents);
